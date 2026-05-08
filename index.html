@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Growthxpress Xwallet - Money Transfer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Notification Styles */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 380px;
+            width: calc(100% - 40px);
+        }
+
+        .notification {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            animation: slideInRight 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px) rotate(5deg); }
+            to { opacity: 1; transform: translateX(0) rotate(0); }
+        }
+
+        .notification-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .notification-icon.sent {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+        }
+
+        .notification-icon.received {
+            background: linear-gradient(135deg, #2ed573, #26de81);
+            color: white;
+        }
+
+        .notification.progress-bar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            animation: progress 4s linear forwards;
+        }
+
+        @keyframes progress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        /* Login Page Styles */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-box {
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(10px);
+            padding: 45px 40px;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 440px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .login-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px -12px rgba(0,0,0,0.4);
+        }
+
+        .logo-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 36px;
+            color: white;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .login-box h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 2px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.2);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(102,126,234,0.5);
+        }
+
+        /* Dashboard Styles */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            padding: 30px 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+            z-index: 100;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 22px;
+            background: linear-gradient(135deg, #667eea, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-info {
+            text-align: center;
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .avatar {
+            width: 85px;
+            height: 85px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            margin: 0 auto 15px;
+            border: 3px solid rgba(255,255,255,0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .nav-btn {
+            width: 100%;
+            padding: 12px 16px;
+            margin: 8px 0;
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .logout-btn {
+            margin-top: 40px;
+            background: rgba(220,53,69,0.3);
+            color: #ff6b6b;
+        }
+
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #dc3545, #ff6b6b);
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 30px;
+            padding: 35px;
+            margin-bottom: 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .balance-amount {
+            font-size: 52px;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+        }
+
+        .transfer-form, .profile-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .quick-amount {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .quick-amount-btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #333;
+        }
+
+        .quick-amount-btn:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .receiver-info {
+            background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+            padding: 15px;
+            border-radius: 20px;
+            margin: 15px 0;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeInUp 0.4s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .history-list {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            border-left: 4px solid transparent;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .history-item.sent {
+            border-left-color: #ff4757;
+        }
+
+        .history-item.received {
+            border-left-color: #2ed573;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 24px;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .sms-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 15px 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 40px;
+            width: 90%;
+            max-width: 400px;
+            padding: 25px;
+            animation: modalZoom 0.3s ease;
+        }
+
+        @keyframes modalZoom {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        #qr-video {
+            width: 100%;
+            border-radius: 20px;
+            background: #000;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: relative;
+                height: auto;
+                padding: 20px;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            .dashboard-container {
+                flex-direction: column;
+            }
+            .balance-amount {
+                font-size: 36px;
+            }
+            .notification-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+
+<div class="animated-bg"></div>
+
+<!-- Notification Container -->
+<div id="notificationContainer" class="notification-container"></div>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+    <div class="login-container">
+        <div class="login-box">
+            <div class="logo-icon">
+                <i class="fas fa-exchange-alt"></i>
+            </div>
+            <h1>Growthxpress Xwallet</h1>
+            <div style="text-align:center; color:#666; font-size:14px; margin-bottom:30px;">Secure Money Transfer</div>
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="userId" placeholder="User ID" class="input-field">
+            </div>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="userPassword" placeholder="Password" class="input-field">
+            </div>
+            <button onclick="loginUser()" class="btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+            <div class="demo-text" style="margin-top:25px; padding:15px; background:linear-gradient(135deg,#f8f9fa,#e9ecef); border-radius:20px; text-align:center; font-size:12px; color:#666;">
+                <strong><i class="fas fa-shield-alt"></i> Secure Login</strong><br>
+                Contact admin for account creation
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- USER DASHBOARD -->
+<div id="userDashboard" style="display:none;">
+    <div class="dashboard-container">
+        <div class="sidebar">
+            <h2><i class="fas fa-wallet"></i> Xwallet</h2>
+            <div class="user-info">
+                <div class="avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <h3 id="userName">User Name</h3>
+                <p id="userID">ID: user123</p>
+                <button class="my-qr-btn" onclick="generateMyQR()" style="background:linear-gradient(135deg,#667eea,#764ba2); color:white; margin-top:15px; width:100%; padding:12px; border-radius:16px; cursor:pointer; border:none; font-weight:600;">
+                    <i class="fas fa-qrcode"></i> My QR Code
+                </button>
+            </div>
+            <nav>
+                <button class="nav-btn active" data-tab="transfer">
+                    <i class="fas fa-paper-plane"></i> Send Money
+                </button>
+                <button class="nav-btn" data-tab="history">
+                    <i class="fas fa-history"></i> Transactions
+                </button>
+                <button class="nav-btn" data-tab="profile">
+                    <i class="fas fa-user"></i> My Profile
+                </button>
+                <button class="nav-btn logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </nav>
+        </div>
+
+        <div class="main-content">
+            <div id="transferTab" class="tab-content active">
+                <div class="balance-card">
+                    <div class="balance-label" style="opacity:0.9; font-size:14px;">Available Balance</div>
+                    <div class="balance-amount">
+                        ₹<span id="balanceAmount">0</span>
+                    </div>
+                </div>
+                
+                <div class="transfer-form">
+                    <div class="sms-toggle">
+                        <span><i class="fas fa-sms"></i> SMS Notification</span>
+                        <label class="switch">
+                            <input type="checkbox" id="smsToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <button class="btn-primary qr-scan-btn" onclick="openQRScanner()" style="background:linear-gradient(135deg,#28a745,#20c997) !important; margin-bottom:15px;">
+                        <i class="fas fa-camera"></i> Scan QR Code
+                    </button>
+                    
+                    <label style="font-weight:600; margin-bottom:8px; display:block;">Receiver ID</label>
+                    <div class="input-group">
+                        <i class="fas fa-user-friends"></i>
+                        <input type="text" id="receiverId" placeholder="Enter receiver's User ID" class="input-field">
+                    </div>
+                    
+                    <button onclick="checkReceiver()" style="width:100%; padding:12px; background:linear-gradient(135deg,#e9ecef,#dee2e6); border:none; border-radius:16px; cursor:pointer; font-weight:600; margin:10px 0;">
+                        <i class="fas fa-search"></i> Check Receiver
+                    </button>
+                    
+                    <div id="receiverInfo" class="receiver-info" style="display:none;">
+                        <p><i class="fas fa-user-check"></i> <strong id="receiverName"></strong></p>
+                        <p><i class="fas fa-phone"></i> <strong id="receiverPhone"></strong></p>
+                    </div>
+                    
+                    <label style="font-weight:600; margin-bottom:8px; display:block;">Amount (₹)</label>
+                    <div class="quick-amount">
+                        <button type="button" class="quick-amount-btn" onclick="setQuickAmount(100)">₹100</button>
+                        <button type="button" class="quick-amount-btn" onclick="setQuickAmount(500)">₹500</button>
+                        <button type="button" class="quick-amount-btn" onclick="setQuickAmount(1000)">₹1000</button>
+                        <button type="button" class="quick-amount-btn" onclick="setQuickAmount(2000)">₹2000</button>
+                    </div>
+                    
+                    <div class="input-group">
+                        <i class="fas fa-rupee-sign"></i>
+                        <input type="number" id="amount" placeholder="Enter amount" class="input-field" min="10">
+                    </div>
+                    
+                    <button onclick="transferMoney()" class="btn-primary">
+                        <i class="fas fa-arrow-right"></i> Transfer Now
+                    </button>
+                </div>
+            </div>
+
+            <div id="historyTab" class="tab-content">
+                <h2 style="margin-bottom:20px;">Transfer History</h2>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all" onclick="filterHistory('all')">All</button>
+                    <button class="filter-btn" data-filter="sent" onclick="filterHistory('sent')">Sent</button>
+                    <button class="filter-btn" data-filter="received" onclick="filterHistory('received')">Received</button>
+                </div>
+                <div id="historyList" class="history-list"></div>
+            </div>
+
+            <div id="profileTab" class="tab-content">
+                <h2 style="margin-bottom:20px;">My Profile</h2>
+                <div class="profile-card">
+                    <p><strong><i class="fas fa-id-card"></i> User ID:</strong> <span id="profileUserId"></span></p>
+                    <p><strong><i class="fas fa-user"></i> Name:</strong> <span id="profileName"></span></p>
+                    <p><strong><i class="fas fa-envelope"></i> Email:</strong> <span id="profileEmail"></span></p>
+                    <p><strong><i class="fas fa-phone"></i> Phone:</strong> <span id="profilePhone"></span></p>
+                    <p><strong><i class="fas fa-wallet"></i> Balance:</strong> <span id="profileBalance"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QR Modal -->
+<div id="qrModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header" style="display:flex; justify-content:space-between; margin-bottom:15px;">
+            <h3>Scan QR Code</h3>
+            <button class="close-modal" onclick="closeQRScanner()" style="background:none; border:none; font-size:28px; cursor:pointer;">&times;</button>
+        </div>
+        <video id="qr-video" autoplay playsinline style="width:100%; border-radius:16px;"></video>
+        <canvas id="qr-canvas" style="display:none;"></canvas>
+        <button onclick="closeQRScanner()" class="btn-primary" style="margin-top:15px;">Cancel</button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+// Firebase Config
+const firebaseConfig = {
+    apiKey: "AIzaSyC6NlviruSjmmoj_gE6nZkBHdfq69t2PcA",
+    authDomain: "apstore-426b2.firebaseapp.com",
+    databaseURL: "https://apstore-426b2-default-rtdb.firebaseio.com",
+    projectId: "apstore-426b2",
+    storageBucket: "apstore-426b2.appspot.com",
+    messagingSenderId: "689506328225",
+    appId: "1:689506328225:android:ee42613596f2f2c1881ae0"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+let currentUser = null;
+let currentUserData = null;
+let allUserTransfers = [];
+let balanceListener = null;
+let transferListener = null;
+
+function showNotification(title, message, type) {
+    const container = document.getElementById('notificationContainer');
+    const notification = document.createElement('div');
+    notification.className = 'notification progress-bar';
+    
+    let iconHtml = '';
+    let iconClass = '';
+    
+    if (type === 'sent') {
+        iconHtml = '<i class="fas fa-paper-plane"></i>';
+        iconClass = 'sent';
+    } else if (type === 'received') {
+        iconHtml = '<i class="fas fa-download"></i>';
+        iconClass = 'received';
+    } else {
+        iconHtml = '<i class="fas fa-bell"></i>';
+        iconClass = 'sent';
+    }
+    
+    const time = new Date().toLocaleTimeString();
+    
+    notification.innerHTML = `
+        <div class="notification-icon ${iconClass}">
+            ${iconHtml}
+        </div>
+        <div class="notification-content">
+            <div class="notification-title">${title}</div>
+            <div class="notification-message">${message}</div>
+            <div class="notification-time">${time}</div>
+        </div>
+    `;
+    
+    container.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.3s ease forwards';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 4000);
+}
+
+function setupRealtimeTransferListener(userId) {
+    if (transferListener) transferListener.off();
+    transferListener = database.ref('User_Transfers/' + userId);
+    transferListener.on('child_added', (snapshot) => {
+        const transfer = snapshot.val();
+        const transferTime = new Date(transfer.timestamp).getTime();
+        const currentTime = new Date().getTime();
+        const timeDiff = (currentTime - transferTime) / 1000;
+        
+        if (timeDiff > 10) return;
+        
+        if (transfer.type === 'sent') {
+            showNotification('💸 Money Sent', `You sent ₹${transfer.amount.toLocaleString()} to ${transfer.toUserName}`, 'sent');
+            playNotificationSound();
+        } else if (transfer.type === 'received') {
+            showNotification('💰 Money Received', `You received ₹${transfer.amount.toLocaleString()} from ${transfer.fromUserName}`, 'received');
+            playNotificationSound();
+        }
+    });
+}
+
+function playNotificationSound() {
+    try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.frequency.value = 880;
+        gainNode.gain.value = 0.3;
+        oscillator.start();
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5);
+        oscillator.stop(audioContext.currentTime + 0.5);
+        if (audioContext.state === 'suspended') audioContext.resume();
+    } catch(e) {}
+}
+
+function updateBalanceDisplay(balance) {
+    document.getElementById('balanceAmount').innerHTML = (balance || 0).toLocaleString();
+    document.getElementById('profileBalance').innerHTML = '₹' + (balance || 0).toLocaleString();
+    if (currentUserData) currentUserData.balance = balance;
+}
+
+function setupBalanceListener(userId) {
+    if (balanceListener) balanceListener.off();
+    balanceListener = database.ref('Users/' + userId + '/balance');
+    balanceListener.on('value', (snapshot) => {
+        const newBalance = snapshot.val();
+        if (newBalance !== null && newBalance !== undefined) {
+            updateBalanceDisplay(newBalance);
+        }
+    });
+}
+
+// QR Scanner
+let video = null, stream = null, scanning = false, animationId = null;
+
+async function openQRScanner() {
+    document.getElementById('qrModal').style.display = 'flex';
+    startCamera();
+}
+
+async function startCamera() {
+    video = document.getElementById('qr-video');
+    const canvas = document.getElementById('qr-canvas');
+    const context = canvas.getContext('2d');
+    stopCamera();
+    try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } });
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
+        await video.play();
+        scanning = true;
+        
+        function scanFrame() {
+            if (!scanning) return;
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                const code = jsQR(imageData.data, canvas.width, canvas.height);
+                if (code) {
+                    handleQRScan(code.data);
+                    closeQRScanner();
+                    return;
+                }
+            }
+            animationId = requestAnimationFrame(scanFrame);
+        }
+        scanFrame();
+    } catch (err) { alert('Camera access denied'); }
+}
+
+function stopCamera() {
+    scanning = false;
+    if (animationId) cancelAnimationFrame(animationId);
+    if (stream) stream.getTracks().forEach(track => track.stop());
+    if (video) { video.pause(); video.srcObject = null; }
+}
+
+function closeQRScanner() {
+    stopCamera();
+    document.getElementById('qrModal').style.display = 'none';
+}
+
+function handleQRScan(decodedText) {
+    try {
+        let receiverId = decodedText;
+        let amount = null;
+        if (decodedText.includes('|')) {
+            const parts = decodedText.split('|');
+            receiverId = parts[0];
+            amount = parseInt(parts[1]);
+        }
+        document.getElementById('receiverId').value = receiverId;
+        if (amount && !isNaN(amount)) document.getElementById('amount').value = amount;
+        setTimeout(() => checkReceiver(), 500);
+    } catch(e) { alert('Invalid QR code'); }
+}
+
+function generateMyQR() {
+    if (!currentUser) return;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=10&data=${encodeURIComponent(currentUser)}`;
+    const qrPopup = window.open();
+    qrPopup.document.write(`<!DOCTYPE html><html><head><title>My QR Code</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{display:flex;justify-content:center;align-items:center;min-height:100vh;font-family:Inter,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2,#f093fb);margin:0;padding:20px}.qr-container{background:white;padding:30px;border-radius:40px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.2)}.qr-image img{width:250px;height:250px;border-radius:20px}.user-info{text-align:left;margin-top:20px;background:linear-gradient(135deg,#f8f9fa,#e9ecef);padding:20px;border-radius:20px}.balance{color:#28a745;font-weight:bold}button{padding:12px 20px;margin:5px;border:none;border-radius:16px;cursor:pointer;font-weight:600}</style></head><body><div class="qr-container"><h2 style="background:linear-gradient(135deg,#667eea,#764ba2);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">My Payment QR Code</h2><div class="qr-image"><img src="${qrUrl}"></div><div class="user-info"><p><strong>User ID:</strong> ${currentUser}</p><p><strong>Name:</strong> ${currentUserData?.name || ''}</p><p><strong>Balance:</strong> <span class="balance">₹${currentUserData?.balance?.toLocaleString() || 0}</span></p></div><button onclick="window.print()" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;">Print QR</button><button onclick="window.close()" style="background:#dc3545;color:white;">Close</button></div></body></html>`);
+}
+
+function setQuickAmount(amount) {
+    document.getElementById('amount').value = amount;
+}
+
+// Removed sample data initialization - No demo users
+// Only admin will create users
+
+function loginUser() {
+    const userId = document.getElementById('userId').value;
+    const password = document.getElementById('userPassword').value;
+    
+    if(!userId || !password) { alert('Please enter User ID and Password'); return; }
+    
+    database.ref('Users/' + userId).once('value').then((snapshot) => {
+        if(snapshot.exists() && snapshot.child('password').val() === password) {
+            currentUser = userId;
+            currentUserData = snapshot.val();
+            localStorage.setItem('currentUser', userId);
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('userDashboard').style.display = 'block';
+            
+            setupBalanceListener(userId);
+            setupRealtimeTransferListener(userId);
+            loadUserData(userId);
+            loadTransferHistory(userId);
+            setupUserEvents();
+            
+            showNotification('Welcome Back!', `Hello ${currentUserData.name}`, 'received');
+        } else {
+            alert('Invalid credentials! Please contact admin for account creation.');
+        }
+    });
+}
+
+function loadUserData(userId) {
+    database.ref('Users/' + userId).once('value').then((snapshot) => {
+        if(snapshot.exists()) {
+            const data = snapshot.val();
+            document.getElementById('userName').innerText = data.name;
+            document.getElementById('userID').innerText = 'ID: ' + userId;
+            updateBalanceDisplay(data.balance || 0);
+            document.getElementById('profileUserId').innerText = userId;
+            document.getElementById('profileName').innerText = data.name;
+            document.getElementById('profileEmail').innerText = data.email || 'Not set';
+            document.getElementById('profilePhone').innerText = data.phone || 'Not set';
+        }
+    });
+}
+
+function checkReceiver() {
+    const receiverId = document.getElementById('receiverId').value;
+    if(!receiverId) { alert('Please enter Receiver ID'); return; }
+    
+    database.ref('Users/' + receiverId).once('value').then((snapshot) => {
+        if(snapshot.exists()) {
+            const receiverData = snapshot.val();
+            document.getElementById('receiverInfo').style.display = 'block';
+            document.getElementById('receiverName').innerHTML = receiverData.name;
+            document.getElementById('receiverPhone').innerHTML = receiverData.phone || 'Not set';
+        } else {
+            alert('User not found!');
+            document.getElementById('receiverInfo').style.display = 'none';
+        }
+    });
+}
+
+function transferMoney() {
+    const receiverId = document.getElementById('receiverId').value;
+    const amount = parseInt(document.getElementById('amount').value);
+    const senderId = currentUser;
+    
+    if(!receiverId || !amount) { alert('Please fill all fields'); return; }
+    if(amount < 10) { alert('Minimum transfer amount is ₹10'); return; }
+    
+    const currentBalance = currentUserData ? currentUserData.balance : 0;
+    if(amount > currentBalance) { alert('Insufficient balance!'); return; }
+    if(receiverId === senderId) { alert('Cannot transfer to yourself!'); return; }
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Processing...';
+    btn.disabled = true;
+    
+    database.ref('Users/' + receiverId).once('value').then((snapshot) => {
+        if(!snapshot.exists()) { 
+            alert('Receiver not found!'); 
+            btn.innerHTML = originalText; 
+            btn.disabled = false; 
+            return; 
+        }
+        
+        const receiverData = snapshot.val();
+        const transactionId = Date.now() + '_' + senderId + '_' + Math.random().toString(36).substr(2, 5);
+        const timestamp = new Date().toISOString();
+        
+        const updates = {};
+        updates['Users/' + senderId + '/balance'] = currentBalance - amount;
+        updates['Users/' + receiverId + '/balance'] = (receiverData.balance || 0) + amount;
+        updates['Transfer_History/' + transactionId] = {
+            fromUserId: senderId, toUserId: receiverId,
+            fromUserName: currentUserData.name, toUserName: receiverData.name,
+            amount: amount, timestamp: timestamp, status: 'success'
+        };
+        updates['User_Transfers/' + senderId + '/' + transactionId] = {
+            toUserId: receiverId, toUserName: receiverData.name,
+            amount: amount, timestamp: timestamp, type: 'sent'
+        };
+        updates['User_Transfers/' + receiverId + '/' + transactionId] = {
+            fromUserId: senderId, fromUserName: currentUserData.name,
+            amount: amount, timestamp: timestamp, type: 'received'
+        };
+        
+        database.ref().update(updates).then(() => {
+            showNotification('✅ Transfer Successful!', `₹${amount.toLocaleString()} sent to ${receiverData.name}`, 'sent');
+            document.getElementById('receiverId').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('receiverInfo').style.display = 'none';
+            loadTransferHistory(senderId);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }).catch((error) => {
+            alert('❌ Transfer failed: ' + error.message);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    });
+}
+
+function loadTransferHistory(userId) {
+    database.ref('User_Transfers/' + userId).once('value').then((snapshot) => {
+        allUserTransfers = [];
+        if(!snapshot.exists()) {
+            document.getElementById('historyList').innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-inbox"></i> No transfers yet</div>';
+            return;
+        }
+        snapshot.forEach((child) => {
+            allUserTransfers.push({id: child.key, ...child.val()});
+        });
+        allUserTransfers.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        displayUserTransfers('all');
+    });
+}
+
+function displayUserTransfers(filter) {
+    const historyList = document.getElementById('historyList');
+    historyList.innerHTML = '';
+    
+    let filtered = allUserTransfers;
+    if(filter !== 'all') {
+        filtered = allUserTransfers.filter(t => t.type === filter);
+    }
+    
+    if(filtered.length === 0) {
+        historyList.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-inbox"></i> No ' + filter + ' transfers</div>';
+        return;
+    }
+    
+    filtered.forEach(transfer => {
+        const div = document.createElement('div');
+        div.className = `history-item ${transfer.type}`;
+        const amountSymbol = transfer.type === 'sent' ? '- ₹' : '+ ₹';
+        const amountClass = transfer.type === 'sent' ? 'sent' : 'received';
+        const otherPerson = transfer.type === 'sent' ? transfer.toUserName : transfer.fromUserName;
+        div.innerHTML = `
+            <div>
+                <strong><i class="fas ${transfer.type === 'sent' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> ${transfer.type === 'sent' ? 'Sent to' : 'Received from'}</strong>
+                <div style="font-weight:600;margin:5px 0;">${otherPerson}</div>
+                <small><i class="far fa-clock"></i> ${new Date(transfer.timestamp).toLocaleString()}</small>
+            </div>
+            <div class="history-amount ${amountClass}">
+                ${amountSymbol}${transfer.amount.toLocaleString()}
+            </div>
+        `;
+        historyList.appendChild(div);
+    });
+}
+
+function filterHistory(filter) {
+    const btn = event.target;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    displayUserTransfers(filter);
+}
+
+function setupUserEvents() {
+    document.querySelectorAll('#userDashboard .nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if(btn.classList.contains('logout-btn')) return;
+            const tab = btn.dataset.tab;
+            document.querySelectorAll('#userDashboard .nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('#userDashboard .tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(tab + 'Tab').classList.add('active');
+        });
+    });
+}
+
+function logout() {
+    if(balanceListener) balanceListener.off();
+    if(transferListener) transferListener.off();
+    stopCamera();
+    localStorage.clear();
+    currentUser = null;
+    currentUserData = null;
+    document.getElementById('loginPage').style.display = 'flex';
+    document.getElementById('userDashboard').style.display = 'none';
+    document.getElementById('userId').value = '';
+    document.getElementById('userPassword').value = '';
+}
+
+// No sample data initialization - Database should be empty initially
+// Users will be created by admin only
+console.log("User Panel Ready - No Demo Users. Contact Admin for Account Creation.");
+</script>
+
+</body>
+</html>
