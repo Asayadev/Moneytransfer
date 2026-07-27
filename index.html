@@ -3,124 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Help Platform</title>
+  <title>BC / Committee Management System</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #f4f7f6; color: #333; padding-bottom: 40px; }
-    header { background: #10b981; color: white; text-align: center; padding: 20px 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; }
+    header { background: #10b981; color: white; text-align: center; padding: 20px 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     header h1 { font-size: 1.8rem; margin-bottom: 5px; }
-    .user-info-bar { background: #047857; color: white; padding: 8px 15px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
-    .user-info-bar button { background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
     
-    /* Stats Grid */
-    .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 15px; }
-    .stat-card { background: white; padding: 12px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .stat-card h3 { font-size: 1.1rem; color: #10b981; margin-bottom: 2px; }
-    .stat-card p { font-size: 0.75rem; color: #666; font-weight: 600; }
-
+    .user-info-bar { background: #047857; color: white; padding: 10px 15px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
+    .user-info-bar button { background: #ef4444; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    
+    .container { max-width: 650px; margin: 20px auto; padding: 0 15px; }
+    .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    h2 { color: #059669; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #ecfdf5; padding-bottom: 5px; }
+    
+    /* Turn Highlight Box */
+    .turn-highlight { background: #eff6ff; border: 2px dashed #3b82f6; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; }
+    .turn-highlight h3 { color: #1d4ed8; font-size: 1.1rem; margin-bottom: 5px; }
+    .turn-highlight p { font-size: 0.9rem; color: #4b5563; }
+    
     nav { display: flex; justify-content: center; background: #059669; }
     nav button { background: none; border: none; color: white; padding: 12px 15px; font-size: 0.95rem; cursor: pointer; transition: 0.3s; }
     nav button:hover, nav button.active { background: #047857; font-weight: bold; }
     
-    .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
-    .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    h2 { color: #059669; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #ecfdf5; padding-bottom: 5px; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
     
     .bank-box { background: #ecfdf5; border: 1px dashed #10b981; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-    .bank-box p { margin-bottom: 8px; font-size: 0.9rem; }
+    .bank-box p { margin-bottom: 6px; font-size: 0.9rem; }
     
     .form-group { margin-bottom: 12px; }
     label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85rem; }
     input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; }
     button.btn-submit { width: 100%; background: #10b981; color: white; border: none; padding: 12px; font-size: 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 5px; }
-    button.btn-submit:hover { background: #059669; }
     
-    .auth-toggle { text-align: center; margin-top: 10px; font-size: 0.85rem; }
-    .auth-toggle span { color: #3b82f6; cursor: pointer; text-decoration: underline; }
-
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
     th { background: #f9fafb; }
-    .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; }
-    .status-Approved { background: #d1fae5; color: #065f46; }
-    .status-Pending { background: #fef3c7; color: #92400e; }
-
-    /* Clickable stat cards */
-    .stat-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; }
-    .stat-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
-    .stat-card.clickable:active { transform: translateY(0); }
-    .stat-card.clickable::after { content: "›"; position: absolute; top: 6px; right: 8px; font-size: 0.9rem; color: #a7f3d0; font-weight: bold; }
-
-    /* Modal for stat history */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; align-items: flex-end; justify-content: center; }
-    .modal-overlay.active { display: flex; }
-    .modal-box { background: #f4f7f6; width: 100%; max-width: 600px; max-height: 85vh; border-radius: 16px 16px 0 0; overflow: hidden; display: flex; flex-direction: column; animation: slideUp 0.25s ease-out; }
-    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    .modal-header { background: #10b981; color: white; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-    .modal-header h3 { font-size: 1.05rem; }
-    .modal-header button { background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 1rem; cursor: pointer; line-height: 1; }
-    .modal-body { padding: 15px 18px; overflow-y: auto; }
-    .modal-body table { background: white; border-radius: 8px; overflow: hidden; }
-    .modal-loading, .modal-empty { text-align: center; padding: 20px; color: #666; font-size: 0.9rem; }
-
-    /* Login improvements */
-    .password-wrap { position: relative; }
-    .password-wrap input { padding-right: 42px; }
-    .toggle-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 0.85rem; color: #059669; user-select: none; }
-    .field-error { color: #ef4444; font-size: 0.75rem; margin-top: 3px; display: none; }
-    .forgot-pass { text-align: right; font-size: 0.8rem; margin: -6px 0 12px; }
-    .forgot-pass span { color: #3b82f6; cursor: pointer; text-decoration: underline; }
-    button.btn-submit:disabled { background: #9ca3af; cursor: not-allowed; }
-    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.5); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+    .badge-received { background: #d1fae5; color: #065f46; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-current { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
+    
+    .auth-toggle { text-align: center; margin-top: 10px; font-size: 0.85rem; }
+    .auth-toggle span { color: #3b82f6; cursor: pointer; text-decoration: underline; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1> Community Help</h1>
-    <p>Sabka Thoda Sabki Badi Madad</p>
+    <h1>10₹ Monthly BC / Committee</h1>
+    <p id="cycleDisplay">Current Cycle: 1</p>
   </header>
 
   <!-- User Bar -->
   <div id="userBar" class="user-info-bar" style="display:none;">
-    <span>Welcome, <strong id="userEmailDisplay">User</strong></span>
+    <span>Namaste, <strong id="userEmailDisplay">User</strong></span>
     <button onclick="logoutUser()">Logout</button>
   </div>
 
-  <!-- Realtime Overall Stats -->
-  <div class="stats-container">
-    <div class="stat-card"><h3 id="statTotalBal">₹0</h3><p>Total Balance</p></div>
-    <div class="stat-card clickable" onclick="openStatModal('totalUsers')"><h3 id="statTotalUsers">0</h3><p>Total Users</p></div>
-    <div class="stat-card clickable" onclick="openStatModal('paidUsers')"><h3 id="statPaidUsers">0</h3><p>Paid Users</p></div>
-    <div class="stat-card clickable" onclick="openStatModal('pendingUsers')"><h3 id="statPendingUsers">0</h3><p>Pending</p></div>
-    <div class="stat-card clickable" onclick="openStatModal('peopleHelped')"><h3 id="statPeopleHelped">0</h3><p>People Helped</p></div>
-  </div>
-
-  <!-- Stat History Modal -->
-  <div id="statModalOverlay" class="modal-overlay" onclick="if(event.target===this) closeStatModal()">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 id="statModalTitle">History</h3>
-        <button onclick="closeStatModal()">✕</button>
-      </div>
-      <div class="modal-body" id="statModalBody">
-        <div class="modal-loading">Loading...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Navigation -->
-  <nav id="mainNav" style="display:none;">
-    <button class="nav-btn active" onclick="switchTab('pay-tab', this)">Payment</button>
-    <button class="nav-btn" onclick="switchTab('history-tab', this)">Mera History</button>
-  </nav>
-
   <div class="container">
 
-    <!-- AUTH SECTION (LOGIN / REGISTER) -->
+    <!-- AUTH SECTION -->
     <div id="authSection" class="card">
       <h2 id="authTitle">Gmail & Password Login</h2>
       <form id="authForm">
@@ -138,25 +83,52 @@
         </div>
         <div class="form-group">
           <label for="authPassword">Password:</label>
-          <div class="password-wrap">
-            <input type="password" id="authPassword" placeholder="Minimum 6 characters" required minlength="6">
-            <span class="toggle-eye" id="pwToggle" onclick="togglePasswordView()">Show</span>
-          </div>
-          <div class="field-error" id="authError"></div>
+          <input type="password" id="authPassword" placeholder="Minimum 6 characters" required minlength="6">
         </div>
-        <p class="forgot-pass" id="forgotPassBlock"><span onclick="handleForgotPassword()">Password bhool gaye?</span></p>
         <button type="submit" class="btn-submit" id="authBtn">Login Karein</button>
       </form>
       <p class="auth-toggle" id="authToggleText">Account nahi hai? <span onclick="toggleAuthMode(true)">Naya Account Banayein</span></p>
     </div>
 
-    <!-- MAIN APP CONTENT (Login ke baad dikhega) -->
+    <!-- MAIN APP CONTENT -->
     <div id="appSection" style="display:none;">
       
-      <!-- PAYMENT TAB -->
-      <section id="pay-tab" class="tab-content active">
+      <!-- Personal Turn Summary Card -->
+      <div class="turn-highlight">
+        <h3 id="myTurnStatus">Calculating your turn...</h3>
+        <p id="myTurnDetail">Loading rotation list...</p>
+      </div>
+
+      <!-- Navigation -->
+      <nav id="mainNav">
+        <button class="nav-btn active" onclick="switchTab('queue-tab', this)">Rotation Queue</button>
+        <button class="nav-btn" onclick="switchTab('pay-tab', this)">Payment Submit</button>
+        <button class="nav-btn" onclick="switchTab('history-tab', this)">Mera History</button>
+      </nav>
+
+      <!-- 1. QUEUE TAB -->
+      <section id="queue-tab" class="tab-content active" style="margin-top: 15px;">
         <div class="card">
-          <h2>Direct Bank / UPI Transfer</h2>
+          <h2>10 Members Rotation List</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>Member Name</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="queueTableBody">
+              <tr><td colspan="3" style="text-align:center;">Loading queue...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 2. PAYMENT TAB -->
+      <section id="pay-tab" class="tab-content" style="margin-top: 15px;">
+        <div class="card">
+          <h2>Monthly Contribution Submit</h2>
           <div class="bank-box">
             <p><strong>UPI ID:</strong> <span id="dispUpi">Loading...</span></p>
             <p><strong>Account Name:</strong> <span id="dispAccName">Loading...</span></p>
@@ -167,7 +139,7 @@
           <form id="paymentForm">
             <div class="form-group">
               <label for="amount">Contribution Amount (₹):</label>
-              <input type="number" id="amount" value="10" min="10" required>
+              <input type="number" id="amount" value="10" min="10" required readonly>
             </div>
 
             <div class="form-group">
@@ -180,8 +152,8 @@
         </div>
       </section>
 
-      <!-- HISTORY TAB -->
-      <section id="history-tab" class="tab-content">
+      <!-- 3. HISTORY TAB -->
+      <section id="history-tab" class="tab-content" style="margin-top: 15px;">
         <div class="card">
           <h2>Mera Contribution History</h2>
           <table>
@@ -204,10 +176,9 @@
 
   </div>
 
-  <!-- Firebase Modular SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, push, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -226,101 +197,23 @@
 
     let currentUserData = null;
     let isRegisterMode = false;
-    let globalUsers = {};
-    let globalDonations = {};
-    let globalHelpedRecords = {};
-    let globalPeopleHelpedCount = 0;
 
-    // Toggle Login vs Register UI
     window.toggleAuthMode = function(register) {
       isRegisterMode = register;
       document.getElementById('authTitle').innerText = register ? "Naya Account Banayein" : "Gmail & Password Login";
       document.getElementById('nameGroup').style.display = register ? "block" : "none";
       document.getElementById('authBtn').innerText = register ? "Register Karein" : "Login Karein";
-      document.getElementById('forgotPassBlock').style.display = register ? "none" : "block";
-      document.getElementById('authError').style.display = "none";
       document.getElementById('authToggleText').innerHTML = register ? 
         `Pehle se account hai? <span onclick="toggleAuthMode(false)">Login Karein</span>` : 
         `Account nahi hai? <span onclick="toggleAuthMode(true)">Naya Account Banayein</span>`;
     };
 
-    // Show/Hide password
-    window.togglePasswordView = function() {
-      const pwInput = document.getElementById('authPassword');
-      const toggle = document.getElementById('pwToggle');
-      if (pwInput.type === 'password') {
-        pwInput.type = 'text';
-        toggle.innerText = 'Hide';
-      } else {
-        pwInput.type = 'password';
-        toggle.innerText = 'Show';
-      }
-    };
-
-    // Forgot Password
-    window.handleForgotPassword = async function() {
-      const email = document.getElementById('authEmail').value.trim();
-      if (!email) {
-        alert("Pehle apni Gmail ID enter karein, phir 'Password bhool gaye?' par click karein.");
-        return;
-      }
-      try {
-        await sendPasswordResetEmail(auth, email);
-        alert("Password reset link aapki email (" + email + ") par bhej diya gaya hai. Inbox check karein.");
-      } catch (err) {
-        showAuthError(friendlyAuthError(err));
-      }
-    };
-
-    // Friendly error messages for common Firebase auth errors
-    function friendlyAuthError(err) {
-      const code = err.code || '';
-      const map = {
-        'auth/invalid-email': 'Gmail ID sahi format mein nahi hai.',
-        'auth/user-not-found': 'Is Gmail se koi account nahi mila. Pehle Register karein.',
-        'auth/wrong-password': 'Password galat hai. Dobara try karein.',
-        'auth/invalid-credential': 'Email ya Password galat hai.',
-        'auth/email-already-in-use': 'Yeh Gmail pehle se register hai. Login karein.',
-        'auth/weak-password': 'Password kam se kam 6 characters ka hona chahiye.',
-        'auth/too-many-requests': 'Bahut zyada attempts ho gaye hain. Thodi der baad try karein.',
-        'auth/network-request-failed': 'Internet connection check karein.'
-      };
-      return map[code] || (err.message || 'Kuch galat ho gaya, dobara try karein.');
-    }
-
-    function showAuthError(msg) {
-      const errBox = document.getElementById('authError');
-      errBox.innerText = msg;
-      errBox.style.display = 'block';
-    }
-
-    // Auth Form Submit
     document.getElementById('authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('authEmail').value.trim();
+      const email = document.getElementById('authEmail').value;
       const password = document.getElementById('authPassword').value;
-      const phone = document.getElementById('authPhone').value.trim();
-      const name = document.getElementById('authName').value.trim();
-      const authBtn = document.getElementById('authBtn');
-      document.getElementById('authError').style.display = 'none';
-
-      // Basic validation
-      if (isRegisterMode && !name) {
-        showAuthError("Kripya apna pura naam enter karein.");
-        return;
-      }
-      if (!/^[0-9]{10}$/.test(phone)) {
-        showAuthError("Mobile number 10 digit ka hona chahiye.");
-        return;
-      }
-      if (password.length < 6) {
-        showAuthError("Password kam se kam 6 characters ka hona chahiye.");
-        return;
-      }
-
-      const originalBtnText = authBtn.innerText;
-      authBtn.disabled = true;
-      authBtn.innerHTML = `<span class="spinner"></span> ${isRegisterMode ? 'Account ban raha hai...' : 'Login ho raha hai...'}`;
+      const phone = document.getElementById('authPhone').value;
+      const name = document.getElementById('authName').value;
 
       try {
         if (isRegisterMode) {
@@ -329,44 +222,37 @@
             name: name,
             email: email,
             phone: phone,
+            uid: res.user.uid,
             createdAt: Date.now()
           });
-          alert("Account successfully ban gaya!");
+          alert("Account ban gaya!");
         } else {
           await signInWithEmailAndPassword(auth, email, password);
         }
       } catch (err) {
-        showAuthError(friendlyAuthError(err));
-      } finally {
-        authBtn.disabled = false;
-        authBtn.innerText = originalBtnText;
+        alert("Error: " + err.message);
       }
     });
 
-    // Auth State Observer
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('appSection').style.display = 'block';
-        document.getElementById('mainNav').style.display = 'flex';
         document.getElementById('userBar').style.display = 'flex';
 
-        // Get User Profile
         const userSnap = await get(child(ref(db), `users/${user.uid}`));
         if (userSnap.exists()) {
           currentUserData = userSnap.val();
-          currentUserData.uid = user.uid;
           document.getElementById('userEmailDisplay').innerText = currentUserData.name || currentUserData.email;
         } else {
-          currentUserData = { email: user.email, uid: user.uid, phone: "" };
+          currentUserData = { email: user.email, uid: user.uid };
           document.getElementById('userEmailDisplay').innerText = user.email;
         }
 
-        loadUserHistory();
+        listenToSystemData();
       } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('appSection').style.display = 'none';
-        document.getElementById('mainNav').style.display = 'none';
         document.getElementById('userBar').style.display = 'none';
         currentUserData = null;
       }
@@ -374,47 +260,102 @@
 
     window.logoutUser = () => signOut(auth);
 
-    // Live Stats & Bank Account Listener
-    onValue(ref(db), (snapshot) => {
-      if (!snapshot.exists()) return;
-      const data = snapshot.val();
+    function listenToSystemData() {
+      onValue(ref(db), (snapshot) => {
+        if (!snapshot.exists()) return;
+        const data = snapshot.val();
 
-      // Bank Details Sync
-      if(data.bankDetails) {
-        document.getElementById('dispUpi').innerText = data.bankDetails.upi || '-';
-        document.getElementById('dispAccName').innerText = data.bankDetails.accName || '-';
-        document.getElementById('dispAccNo').innerText = data.bankDetails.accNo || '-';
-        document.getElementById('dispIfsc').innerText = data.bankDetails.ifsc || '-';
-      }
+        // Display Cycle
+        document.getElementById('cycleDisplay').innerText = "Current Cycle: " + (data.currentCycle || 1);
 
-      // Stats Calculation
-      let totalBal = 0;
-      let paidCount = 0;
-      let pendingCount = 0;
-      const donations = data.donations || {};
-      const users = data.users || {};
+        // Bank Details
+        if(data.bankDetails) {
+          document.getElementById('dispUpi').innerText = data.bankDetails.upi || '-';
+          document.getElementById('dispAccName').innerText = data.bankDetails.accName || '-';
+          document.getElementById('dispAccNo').innerText = data.bankDetails.accNo || '-';
+          document.getElementById('dispIfsc').innerText = data.bankDetails.ifsc || '-';
+        }
 
-      // Save globally so stat modals can use it
-      globalUsers = users;
-      globalDonations = donations;
-      globalHelpedRecords = data.helpedRecords || {};
-      globalPeopleHelpedCount = data.peopleHelpedCount || 0;
+        // Render Rotation Queue & User Personal Turn Status
+        const queue = data.queue || [];
+        const queueTable = document.getElementById('queueTableBody');
+        queueTable.innerHTML = "";
 
-      Object.values(donations).forEach(d => {
-        if (d.status === 'Approved') {
-          totalBal += Number(d.amount || 0);
-          paidCount++;
-        } else if (d.status === 'Pending') {
-          pendingCount++;
+        let myIndex = -1;
+        let activeTurnIndex = -1;
+
+        if (queue.length === 0) {
+          queueTable.innerHTML = `<tr><td colspan="3" style="text-align:center;">Admin ne abhi tak Rotation Queue set nahi ki hai.</td></tr>`;
+        } else {
+          queue.forEach((member, idx) => {
+            if (member.uid === currentUserData.uid || member.phone === currentUserData.phone) {
+              myIndex = idx;
+            }
+            if (activeTurnIndex === -1 && member.status === 'Pending') {
+              activeTurnIndex = idx;
+            }
+
+            let badgeHtml = member.status === 'Received' 
+              ? `<span class="badge badge-received">Received ✅</span>` 
+              : (idx === activeTurnIndex ? `<span class="badge badge-current">Is Mahine Ka Turn 🎯</span>` : `<span class="badge badge-pending">Pending 🕐</span>`);
+
+            queueTable.innerHTML += `
+              <tr>
+                <td><strong>#${idx + 1}</strong></td>
+                <td>${member.name}</td>
+                <td>${badgeHtml}</td>
+              </tr>
+            `;
+          });
+        }
+
+        // User Personal Turn Calculation Card
+        const turnTitle = document.getElementById('myTurnStatus');
+        const turnDetail = document.getElementById('myTurnDetail');
+
+        if (myIndex === -1) {
+          turnTitle.innerText = "Aap Queue Mein Added Nahi Hain";
+          turnDetail.innerText = "Kripya Admin se sampark karke apna naam Queue mein add karwayein.";
+        } else {
+          const myData = queue[myIndex];
+          if (myData.status === 'Received') {
+            turnTitle.innerText = `Aapka Turn Ho Chuka Hai! ✅`;
+            turnDetail.innerText = `Aapko is Cycle ka BC amount mil chuka hai.`;
+          } else if (myIndex === activeTurnIndex) {
+            turnTitle.innerText = `🎯 IS MAHINE AAPKA TURN HAI!`;
+            turnDetail.innerText = `Is mahine ka sabhi members ka contribution aapko milega.`;
+          } else {
+            const monthsLeft = myIndex - activeTurnIndex;
+            turnTitle.innerText = `Aapka Turn: Position #${myIndex + 1}`;
+            turnDetail.innerText = `Aapka number lagbhag ${monthsLeft} mahine baad aayega.`;
+          }
+        }
+
+        // Render Personal History
+        const donations = data.donations || {};
+        const historyTable = document.getElementById('historyTableBody');
+        historyTable.innerHTML = "";
+        let foundHistory = false;
+
+        Object.values(donations).forEach(item => {
+          if (item.userId === currentUserData.uid || item.userPhone === currentUserData.phone) {
+            foundHistory = true;
+            historyTable.innerHTML += `
+              <tr>
+                <td>${item.month}</td>
+                <td>₹${item.amount}</td>
+                <td>${item.utr}</td>
+                <td><span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></td>
+              </tr>
+            `;
+          }
+        });
+
+        if (!foundHistory) {
+          historyTable.innerHTML = `<tr><td colspan="4" style="text-align:center;">Koi record nahi mila.</td></tr>`;
         }
       });
-
-      document.getElementById('statTotalBal').innerText = "₹" + totalBal;
-      document.getElementById('statTotalUsers').innerText = Object.keys(users).length;
-      document.getElementById('statPaidUsers').innerText = paidCount;
-      document.getElementById('statPendingUsers').innerText = pendingCount;
-      document.getElementById('statPeopleHelped').innerText = data.peopleHelpedCount || 0;
-    });
+    }
 
     // Submit Payment
     document.getElementById('paymentForm').addEventListener('submit', async function(e) {
@@ -444,159 +385,12 @@
         alert("Payment Proof Submit ho gaya hai!");
         this.reset();
         document.getElementById('amount').value = 10;
-        loadUserHistory();
       } catch (err) {
         alert("Error: " + err.message);
       } finally {
         submitBtn.disabled = false;
       }
     });
-
-    // Fetch User Personal History
-    function loadUserHistory() {
-      if(!currentUserData) return;
-      onValue(ref(db, 'donations'), (snapshot) => {
-        const tableBody = document.getElementById('historyTableBody');
-        tableBody.innerHTML = "";
-        if (!snapshot.exists()) {
-          tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Koi record nahi mila.</td></tr>`;
-          return;
-        }
-
-        let found = false;
-        snapshot.forEach(child => {
-          const item = child.val();
-          if (item.userId === currentUserData.uid || item.userPhone === currentUserData.phone) {
-            found = true;
-            tableBody.innerHTML += `
-              <tr>
-                <td>${item.month}</td>
-                <td>₹${item.amount}</td>
-                <td>${item.utr}</td>
-                <td><span class="status-badge status-${item.status}">${item.status}</span></td>
-              </tr>
-            `;
-          }
-        });
-
-        if (!found) {
-          tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Koi record nahi mila.</td></tr>`;
-        }
-      });
-    }
-
-    // ---- Stat History Modals ----
-    function fmtDate(ts) {
-      if (!ts) return '-';
-      const d = new Date(ts);
-      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-    }
-
-    function escapeHtml(str) {
-      return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
-
-    window.openStatModal = function(type) {
-      const overlay = document.getElementById('statModalOverlay');
-      const title = document.getElementById('statModalTitle');
-      const body = document.getElementById('statModalBody');
-      overlay.classList.add('active');
-      body.innerHTML = '<div class="modal-loading">Loading...</div>';
-
-      if (type === 'totalUsers') {
-        title.innerText = 'Total Users';
-        renderUsersList(body);
-      } else if (type === 'paidUsers') {
-        title.innerText = 'Paid Users History';
-        renderDonationsList(body, 'Approved');
-      } else if (type === 'pendingUsers') {
-        title.innerText = 'Pending Users History';
-        renderDonationsList(body, 'Pending');
-      } else if (type === 'peopleHelped') {
-        title.innerText = 'People Helped History';
-        renderHelpedList(body);
-      }
-    };
-
-    window.closeStatModal = function() {
-      document.getElementById('statModalOverlay').classList.remove('active');
-    };
-
-    function renderUsersList(body) {
-      const entries = Object.entries(globalUsers);
-      if (entries.length === 0) {
-        body.innerHTML = '<div class="modal-empty">Koi user nahi mila.</div>';
-        return;
-      }
-      // Newest first
-      entries.sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
-      let rows = entries.map(([uid, u]) => `
-        <tr>
-          <td>${escapeHtml(u.name || '-')}</td>
-          <td>${escapeHtml(u.email || '-')}</td>
-          <td>${escapeHtml(u.phone || '-')}</td>
-          <td>${fmtDate(u.createdAt)}</td>
-        </tr>
-      `).join('');
-      body.innerHTML = `
-        <table>
-          <thead><tr><th>Naam</th><th>Email</th><th>Mobile</th><th>Joined</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-    }
-
-    function renderDonationsList(body, statusFilter) {
-      const entries = Object.entries(globalDonations).filter(([id, d]) => d.status === statusFilter);
-      if (entries.length === 0) {
-        body.innerHTML = '<div class="modal-empty">Koi record nahi mila.</div>';
-        return;
-      }
-      entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
-      let rows = entries.map(([id, d]) => `
-        <tr>
-          <td>${escapeHtml(d.userName || 'User')}</td>
-          <td>₹${escapeHtml(d.amount)}</td>
-          <td>${escapeHtml(d.month || '-')}</td>
-          <td>${escapeHtml(d.utr || '-')}</td>
-          <td><span class="status-badge status-${d.status}">${d.status}</span></td>
-        </tr>
-      `).join('');
-      body.innerHTML = `
-        <table>
-          <thead><tr><th>Naam</th><th>Amount</th><th>Mahina</th><th>UTR</th><th>Status</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-    }
-
-    function renderHelpedList(body) {
-      const entries = Object.entries(globalHelpedRecords);
-      if (entries.length === 0) {
-        body.innerHTML = `
-          <div class="modal-empty">
-            Detailed history abhi upload nahi hui hai.<br>
-            Total People Helped so far: <strong>${globalPeopleHelpedCount}</strong>
-          </div>
-        `;
-        return;
-      }
-      entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
-      let rows = entries.map(([id, h]) => `
-        <tr>
-          <td>${escapeHtml(h.name || '-')}</td>
-          <td>${escapeHtml(h.reason || h.description || '-')}</td>
-          <td>₹${escapeHtml(h.amount || 0)}</td>
-          <td>${fmtDate(h.timestamp)}</td>
-        </tr>
-      `).join('');
-      body.innerHTML = `
-        <table>
-          <thead><tr><th>Naam</th><th>Wajah</th><th>Amount</th><th>Date</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-    }
 
     window.switchTab = function(tabId, btnElement) {
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
