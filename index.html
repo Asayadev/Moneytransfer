@@ -39,6 +39,8 @@
       justify-content: space-between;
       align-items: center;
       font-size: 0.95rem;
+      flex-wrap: wrap;
+      gap: 6px;
     }
     .user-bar button {
       background: #ef4444;
@@ -206,6 +208,11 @@
       color: #64748b;
       margin-top: 4px;
     }
+    .highlight-row {
+      background: #dbeafe !important;
+      border-left: 4px solid #3b82f6;
+      font-weight: 600;
+    }
     @media (max-width: 480px) {
       header h1 { font-size: 1.3rem; }
       .user-bar { flex-wrap: wrap; gap: 6px; }
@@ -268,7 +275,7 @@
       <!-- QUEUE -->
       <section id="queue-tab" class="tab-content active">
         <div class="card">
-          <h2>📌 Rotation Queue</h2>
+          <h2>📌 Rotation Queue <span style="font-size:0.7rem;color:#64748b;font-weight:normal;">(Current turn highlighted 👑)</span></h2>
           <table>
             <thead><tr><th>#</th><th>Member</th><th>Status</th></tr></thead>
             <tbody id="queueTableBody"><tr><td colspan="3" style="text-align:center;">Loading...</td></tr></tbody>
@@ -409,26 +416,52 @@
           document.getElementById('dispIfsc').innerText = data.bankDetails.ifsc || '-';
         }
 
+        // ====== QUEUE RENDER WITH HIGHLIGHT ======
         const queue = data.queue || [];
         const queueTable = document.getElementById('queueTableBody');
         queueTable.innerHTML = "";
-        let myIndex = -1, activeTurnIndex = -1;
+        let myIndex = -1;
+        let activeTurnIndex = -1;
 
         if (queue.length === 0) {
           queueTable.innerHTML = `<tr><td colspan="3" style="text-align:center;">⏳ Queue empty, admin wait karein</td></tr>`;
         } else {
           queue.forEach((member, idx) => {
-            if (member.uid === currentUserData.uid || member.phone === currentUserData.phone) myIndex = idx;
-            if (activeTurnIndex === -1 && member.status === 'Pending') activeTurnIndex = idx;
+            // Check if current user is in queue
+            if (member.uid === currentUserData.uid || member.phone === currentUserData.phone) {
+              myIndex = idx;
+            }
+            // Find first Pending member as active turn
+            if (activeTurnIndex === -1 && member.status === 'Pending') {
+              activeTurnIndex = idx;
+            }
 
-            let badge = member.status === 'Received'
-              ? `<span class="badge badge-received">✅ Received</span>`
-              : (idx === activeTurnIndex ? `<span class="badge badge-current">🎯 Current</span>` : `<span class="badge badge-pending">⏳ Pending</span>`);
+            const isCurrentTurn = (idx === activeTurnIndex && member.status === 'Pending');
+            const isReceived = member.status === 'Received';
 
-            queueTable.innerHTML += `<tr><td>#${idx+1}</td><td>${member.name}</td><td>${badge}</td></tr>`;
+            let badgeHtml;
+            if (isReceived) {
+              badgeHtml = `<span class="badge badge-received">✅ Received</span>`;
+            } else if (isCurrentTurn) {
+              badgeHtml = `<span class="badge badge-current">🎯 Current - ${member.name}</span>`;
+            } else {
+              badgeHtml = `<span class="badge badge-pending">⏳ Pending</span>`;
+            }
+
+            // Highlight current turn row
+            const rowClass = isCurrentTurn ? 'highlight-row' : '';
+
+            queueTable.innerHTML += `
+              <tr class="${rowClass}">
+                <td><strong>#${idx + 1}</strong></td>
+                <td>${member.name} ${isCurrentTurn ? '👑' : ''}</td>
+                <td>${badgeHtml}</td>
+              </tr>
+            `;
           });
         }
 
+        // ====== USER PERSONAL TURN STATUS ======
         const turnTitle = document.getElementById('myTurnStatus');
         const turnDetail = document.getElementById('myTurnDetail');
 
@@ -450,6 +483,7 @@
           }
         }
 
+        // ====== PERSONAL HISTORY ======
         const donations = data.donations || {};
         const historyTable = document.getElementById('historyTableBody');
         historyTable.innerHTML = "";
@@ -457,14 +491,22 @@
         Object.values(donations).forEach(item => {
           if (item.userId === currentUserData.uid || item.userPhone === currentUserData.phone) {
             found = true;
-            const statusBadge = item.status === 'Received' ? 'badge-received' : 'badge-pending';
-            historyTable.innerHTML += `<tr><td>${item.month}</td><td>₹${item.amount}</td><td>${item.utr || '---'}</td><td><span class="badge ${statusBadge}">${item.status}</span></td></tr>`;
+            const statusClass = item.status === 'Received' ? 'badge-received' : 'badge-pending';
+            historyTable.innerHTML += `
+              <tr>
+                <td>${item.month}</td>
+                <td>₹${item.amount}</td>
+                <td>${item.utr || '---'}</td>
+                <td><span class="badge ${statusClass}">${item.status}</span></td>
+              </tr>
+            `;
           }
         });
         if (!found) historyTable.innerHTML = `<tr><td colspan="4" style="text-align:center;">📭 Koi record nahi</td></tr>`;
       });
     }
 
+    // ====== PAYMENT SUBMIT ======
     document.getElementById('paymentForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
@@ -494,6 +536,7 @@
       submitBtn.disabled = false;
     });
 
+    // ====== TAB SWITCH ======
     window.switchTab = function(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
