@@ -3,177 +3,317 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BC / Committee Management System</title>
+  <title>BC / Committee System</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #f4f7f6; color: #333; padding-bottom: 40px; }
-    header { background: #10b981; color: white; text-align: center; padding: 20px 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-    header h1 { font-size: 1.8rem; margin-bottom: 5px; }
-    
-    .user-info-bar { background: #047857; color: white; padding: 10px 15px; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; }
-    .user-info-bar button { background: #ef4444; color: white; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-    
-    .container { max-width: 650px; margin: 20px auto; padding: 0 15px; }
-    .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    h2 { color: #059669; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #ecfdf5; padding-bottom: 5px; }
-    
-    /* Turn Highlight Box */
-    .turn-highlight { background: #eff6ff; border: 2px dashed #3b82f6; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; }
-    .turn-highlight h3 { color: #1d4ed8; font-size: 1.1rem; margin-bottom: 5px; }
-    .turn-highlight p { font-size: 0.9rem; color: #4b5563; }
-    
-    nav { display: flex; justify-content: center; background: #059669; }
-    nav button { background: none; border: none; color: white; padding: 12px 15px; font-size: 0.95rem; cursor: pointer; transition: 0.3s; }
-    nav button:hover, nav button.active { background: #047857; font-weight: bold; }
-    
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    
-    .bank-box { background: #ecfdf5; border: 1px dashed #10b981; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-    .bank-box p { margin-bottom: 6px; font-size: 0.9rem; }
-    
-    .form-group { margin-bottom: 12px; }
-    label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85rem; }
-    input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; }
-    button.btn-submit { width: 100%; background: #10b981; color: white; border: none; padding: 12px; font-size: 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 5px; }
-    
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
-    th { background: #f9fafb; }
-    
-    .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
-    .badge-received { background: #d1fae5; color: #065f46; }
-    .badge-pending { background: #fef3c7; color: #92400e; }
-    .badge-current { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
-    
-    .auth-toggle { text-align: center; margin-top: 10px; font-size: 0.85rem; }
-    .auth-toggle span { color: #3b82f6; cursor: pointer; text-decoration: underline; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+    body {
+      background: #f0f4f8;
+      color: #1e293b;
+      padding-bottom: 30px;
+    }
+    header {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: white;
+      text-align: center;
+      padding: 18px 10px 12px;
+    }
+    header h1 {
+      font-size: 1.7rem;
+      font-weight: 700;
+    }
+    header p {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    .user-bar {
+      background: #047857;
+      color: white;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+    }
+    .user-bar button {
+      background: #ef4444;
+      border: none;
+      color: white;
+      padding: 5px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .container {
+      max-width: 680px;
+      margin: 18px auto;
+      padding: 0 16px;
+    }
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+      border: 1px solid #e9edf2;
+    }
+    h2 {
+      color: #059669;
+      font-size: 1.2rem;
+      border-bottom: 2px solid #e2f0ea;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+    }
+    .turn-box {
+      background: #eff6ff;
+      border: 2px solid #3b82f6;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    .turn-box h3 {
+      color: #1d4ed8;
+      font-size: 1.2rem;
+    }
+    .turn-box p {
+      font-size: 0.95rem;
+      color: #334155;
+      margin-top: 4px;
+    }
+    nav {
+      display: flex;
+      gap: 6px;
+      background: #f8fafc;
+      padding: 6px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+    nav button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 10px 0;
+      border-radius: 10px;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    nav button.active {
+      background: #059669;
+      color: white;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .bank-box {
+      background: #ecfdf5;
+      border: 1px dashed #10b981;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+    .bank-box p {
+      margin: 4px 0;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d9e6;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+    .btn-submit {
+      width: 100%;
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 12px;
+      font-weight: 700;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn-submit:hover {
+      background: #059669;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th, td {
+      padding: 10px 6px;
+      border-bottom: 1px solid #eef2f6;
+      text-align: left;
+    }
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+    }
+    .badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: inline-block;
+    }
+    .badge-received {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .badge-current {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #3b82f6;
+    }
+    .auth-toggle {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.9rem;
+    }
+    .auth-toggle span {
+      color: #2563eb;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .small-note {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.3rem; }
+      .user-bar { flex-wrap: wrap; gap: 6px; }
+    }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>10₹ Monthly BC / Committee</h1>
-    <p id="cycleDisplay">Current Cycle: 1</p>
+    <h1>💰 10₹ Monthly BC / Committee</h1>
+    <p id="cycleDisplay">Cycle: 1</p>
   </header>
 
-  <!-- User Bar -->
-  <div id="userBar" class="user-info-bar" style="display:none;">
-    <span>Namaste, <strong id="userEmailDisplay">User</strong></span>
+  <div id="userBar" class="user-bar" style="display:none;">
+    <span>🙏 <strong id="userEmailDisplay">User</strong></span>
     <button onclick="logoutUser()">Logout</button>
   </div>
 
   <div class="container">
 
-    <!-- AUTH SECTION -->
+    <!-- LOGIN / REGISTER -->
     <div id="authSection" class="card">
-      <h2 id="authTitle">Gmail & Password Login</h2>
+      <h2 id="authTitle">🔐 Login</h2>
       <form id="authForm">
         <div class="form-group" id="nameGroup" style="display: none;">
-          <label for="authName">Aapka Pura Naam:</label>
-          <input type="text" id="authName" placeholder="Pura naam enter karein">
+          <label>👤 Pura Naam</label>
+          <input type="text" id="authName" placeholder="Jaise: Rajesh Kumar">
         </div>
         <div class="form-group">
-          <label for="authEmail">Gmail ID:</label>
+          <label>📧 Gmail ID</label>
           <input type="email" id="authEmail" placeholder="example@gmail.com" required>
         </div>
         <div class="form-group">
-          <label for="authPhone">Mobile Number:</label>
-          <input type="tel" id="authPhone" placeholder="10-digit Mobile Number" required pattern="[0-9]{10}">
+          <label>📱 Mobile Number</label>
+          <input type="tel" id="authPhone" placeholder="9876543210" required pattern="[0-9]{10}">
         </div>
         <div class="form-group">
-          <label for="authPassword">Password:</label>
-          <input type="password" id="authPassword" placeholder="Minimum 6 characters" required minlength="6">
+          <label>🔑 Password (6+ chars)</label>
+          <input type="password" id="authPassword" placeholder="●●●●●●" required minlength="6">
         </div>
-        <button type="submit" class="btn-submit" id="authBtn">Login Karein</button>
+        <button type="submit" class="btn-submit" id="authBtn">Login</button>
       </form>
-      <p class="auth-toggle" id="authToggleText">Account nahi hai? <span onclick="toggleAuthMode(true)">Naya Account Banayein</span></p>
+      <p class="auth-toggle" id="authToggleText">Naya account? <span onclick="toggleAuthMode(true)">Register karein</span></p>
     </div>
 
-    <!-- MAIN APP CONTENT -->
+    <!-- MAIN APP -->
     <div id="appSection" style="display:none;">
-      
-      <!-- Personal Turn Summary Card -->
-      <div class="turn-highlight">
-        <h3 id="myTurnStatus">Calculating your turn...</h3>
-        <p id="myTurnDetail">Loading rotation list...</p>
+
+      <div class="turn-box" id="turnBox">
+        <h3 id="myTurnStatus">Loading...</h3>
+        <p id="myTurnDetail">Kripya wait karein...</p>
       </div>
 
-      <!-- Navigation -->
       <nav id="mainNav">
-        <button class="nav-btn active" onclick="switchTab('queue-tab', this)">Rotation Queue</button>
-        <button class="nav-btn" onclick="switchTab('pay-tab', this)">Payment Submit</button>
-        <button class="nav-btn" onclick="switchTab('history-tab', this)">Mera History</button>
+        <button class="nav-btn active" onclick="switchTab('queue-tab', this)">📋 Queue</button>
+        <button class="nav-btn" onclick="switchTab('pay-tab', this)">💳 Pay</button>
+        <button class="nav-btn" onclick="switchTab('history-tab', this)">📜 History</button>
       </nav>
 
-      <!-- 1. QUEUE TAB -->
-      <section id="queue-tab" class="tab-content active" style="margin-top: 15px;">
+      <!-- QUEUE -->
+      <section id="queue-tab" class="tab-content active">
         <div class="card">
-          <h2>10 Members Rotation List</h2>
+          <h2>📌 Rotation Queue</h2>
           <table>
-            <thead>
-              <tr>
-                <th>No.</th>
-                <th>Member Name</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="queueTableBody">
-              <tr><td colspan="3" style="text-align:center;">Loading queue...</td></tr>
-            </tbody>
+            <thead><tr><th>#</th><th>Member</th><th>Status</th></tr></thead>
+            <tbody id="queueTableBody"><tr><td colspan="3" style="text-align:center;">Loading...</td></tr></tbody>
           </table>
         </div>
       </section>
 
-      <!-- 2. PAYMENT TAB -->
-      <section id="pay-tab" class="tab-content" style="margin-top: 15px;">
+      <!-- PAYMENT -->
+      <section id="pay-tab" class="tab-content">
         <div class="card">
-          <h2>Monthly Contribution Submit</h2>
+          <h2>💸 Payment Submit</h2>
           <div class="bank-box">
-            <p><strong>UPI ID:</strong> <span id="dispUpi">Loading...</span></p>
-            <p><strong>Account Name:</strong> <span id="dispAccName">Loading...</span></p>
-            <p><strong>Account No:</strong> <span id="dispAccNo">Loading...</span></p>
-            <p><strong>IFSC Code:</strong> <span id="dispIfsc">Loading...</span></p>
+            <p><strong>UPI:</strong> <span id="dispUpi">---</span></p>
+            <p><strong>Account:</strong> <span id="dispAccName">---</span></p>
+            <p><strong>Acc No:</strong> <span id="dispAccNo">---</span></p>
+            <p><strong>IFSC:</strong> <span id="dispIfsc">---</span></p>
           </div>
 
           <form id="paymentForm">
             <div class="form-group">
-              <label for="amount">Contribution Amount (₹):</label>
-              <input type="number" id="amount" value="10" min="10" required readonly>
+              <label>₹ Amount</label>
+              <input type="number" id="amount" value="10" min="10" readonly>
             </div>
-
             <div class="form-group">
-              <label for="utr">12-Digit UTR / Reference ID:</label>
-              <input type="text" id="utr" maxlength="12" minlength="12" placeholder="GPay/PhonePe UTR Number" required>
+              <label>UTR / Reference ID</label>
+              <input type="text" id="utr" placeholder="Jaise: 123456789012" maxlength="12">
+              <p class="small-note">⚠️ Agar UTR nahi hai toh kuch bhi daal sakte hain</p>
             </div>
-
-            <button type="submit" class="btn-submit" id="submitBtn">Payment Proof Submit Karein</button>
+            <button type="submit" class="btn-submit">✅ Submit Proof</button>
           </form>
         </div>
       </section>
 
-      <!-- 3. HISTORY TAB -->
-      <section id="history-tab" class="tab-content" style="margin-top: 15px;">
+      <!-- HISTORY -->
+      <section id="history-tab" class="tab-content">
         <div class="card">
-          <h2>Mera Contribution History</h2>
+          <h2>📖 Mera History</h2>
           <table>
-            <thead>
-              <tr>
-                <th>Mahina</th>
-                <th>Amount</th>
-                <th>UTR</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="historyTableBody">
-              <tr><td colspan="4" style="text-align:center;">Loading history...</td></tr>
-            </tbody>
+            <thead><tr><th>Month</th><th>Amount</th><th>UTR</th><th>Status</th></tr></thead>
+            <tbody id="historyTableBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
           </table>
         </div>
       </section>
 
     </div>
-
   </div>
 
   <script type="module">
@@ -200,12 +340,12 @@
 
     window.toggleAuthMode = function(register) {
       isRegisterMode = register;
-      document.getElementById('authTitle').innerText = register ? "Naya Account Banayein" : "Gmail & Password Login";
+      document.getElementById('authTitle').innerText = register ? "📝 Register" : "🔐 Login";
       document.getElementById('nameGroup').style.display = register ? "block" : "none";
-      document.getElementById('authBtn').innerText = register ? "Register Karein" : "Login Karein";
-      document.getElementById('authToggleText').innerHTML = register ? 
-        `Pehle se account hai? <span onclick="toggleAuthMode(false)">Login Karein</span>` : 
-        `Account nahi hai? <span onclick="toggleAuthMode(true)">Naya Account Banayein</span>`;
+      document.getElementById('authBtn').innerText = register ? "Register" : "Login";
+      document.getElementById('authToggleText').innerHTML = register ?
+        `Already have account? <span onclick="toggleAuthMode(false)">Login</span>` :
+        `New user? <span onclick="toggleAuthMode(true)">Register</span>`;
     };
 
     document.getElementById('authForm').addEventListener('submit', async (e) => {
@@ -219,18 +359,14 @@
         if (isRegisterMode) {
           const res = await createUserWithEmailAndPassword(auth, email, password);
           await set(ref(db, 'users/' + res.user.uid), {
-            name: name,
-            email: email,
-            phone: phone,
-            uid: res.user.uid,
-            createdAt: Date.now()
+            name, email, phone, uid: res.user.uid, createdAt: Date.now()
           });
-          alert("Account ban gaya!");
+          alert("✅ Account ban gaya! Ab login karein.");
         } else {
           await signInWithEmailAndPassword(auth, email, password);
         }
       } catch (err) {
-        alert("Error: " + err.message);
+        alert("❌ Error: " + err.message);
       }
     });
 
@@ -248,7 +384,6 @@
           currentUserData = { email: user.email, uid: user.uid };
           document.getElementById('userEmailDisplay').innerText = user.email;
         }
-
         listenToSystemData();
       } else {
         document.getElementById('authSection').style.display = 'block';
@@ -265,107 +400,79 @@
         if (!snapshot.exists()) return;
         const data = snapshot.val();
 
-        // Display Cycle
-        document.getElementById('cycleDisplay').innerText = "Current Cycle: " + (data.currentCycle || 1);
+        document.getElementById('cycleDisplay').innerText = "Cycle: " + (data.currentCycle || 1);
 
-        // Bank Details
-        if(data.bankDetails) {
+        if (data.bankDetails) {
           document.getElementById('dispUpi').innerText = data.bankDetails.upi || '-';
           document.getElementById('dispAccName').innerText = data.bankDetails.accName || '-';
           document.getElementById('dispAccNo').innerText = data.bankDetails.accNo || '-';
           document.getElementById('dispIfsc').innerText = data.bankDetails.ifsc || '-';
         }
 
-        // Render Rotation Queue & User Personal Turn Status
         const queue = data.queue || [];
         const queueTable = document.getElementById('queueTableBody');
         queueTable.innerHTML = "";
-
-        let myIndex = -1;
-        let activeTurnIndex = -1;
+        let myIndex = -1, activeTurnIndex = -1;
 
         if (queue.length === 0) {
-          queueTable.innerHTML = `<tr><td colspan="3" style="text-align:center;">Admin ne abhi tak Rotation Queue set nahi ki hai.</td></tr>`;
+          queueTable.innerHTML = `<tr><td colspan="3" style="text-align:center;">⏳ Queue empty, admin wait karein</td></tr>`;
         } else {
           queue.forEach((member, idx) => {
-            if (member.uid === currentUserData.uid || member.phone === currentUserData.phone) {
-              myIndex = idx;
-            }
-            if (activeTurnIndex === -1 && member.status === 'Pending') {
-              activeTurnIndex = idx;
-            }
+            if (member.uid === currentUserData.uid || member.phone === currentUserData.phone) myIndex = idx;
+            if (activeTurnIndex === -1 && member.status === 'Pending') activeTurnIndex = idx;
 
-            let badgeHtml = member.status === 'Received' 
-              ? `<span class="badge badge-received">Received ✅</span>` 
-              : (idx === activeTurnIndex ? `<span class="badge badge-current">Is Mahine Ka Turn 🎯</span>` : `<span class="badge badge-pending">Pending 🕐</span>`);
+            let badge = member.status === 'Received'
+              ? `<span class="badge badge-received">✅ Received</span>`
+              : (idx === activeTurnIndex ? `<span class="badge badge-current">🎯 Current</span>` : `<span class="badge badge-pending">⏳ Pending</span>`);
 
-            queueTable.innerHTML += `
-              <tr>
-                <td><strong>#${idx + 1}</strong></td>
-                <td>${member.name}</td>
-                <td>${badgeHtml}</td>
-              </tr>
-            `;
+            queueTable.innerHTML += `<tr><td>#${idx+1}</td><td>${member.name}</td><td>${badge}</td></tr>`;
           });
         }
 
-        // User Personal Turn Calculation Card
         const turnTitle = document.getElementById('myTurnStatus');
         const turnDetail = document.getElementById('myTurnDetail');
 
         if (myIndex === -1) {
-          turnTitle.innerText = "Aap Queue Mein Added Nahi Hain";
-          turnDetail.innerText = "Kripya Admin se sampark karke apna naam Queue mein add karwayein.";
+          turnTitle.innerText = "❌ Queue mein nahi hain";
+          turnDetail.innerText = "Admin se request karein apna naam add karwane ke liye.";
         } else {
           const myData = queue[myIndex];
           if (myData.status === 'Received') {
-            turnTitle.innerText = `Aapka Turn Ho Chuka Hai! ✅`;
-            turnDetail.innerText = `Aapko is Cycle ka BC amount mil chuka hai.`;
+            turnTitle.innerText = "✅ Aapka turn ho chuka hai!";
+            turnDetail.innerText = "Aapko is cycle ka amount mil gaya.";
           } else if (myIndex === activeTurnIndex) {
-            turnTitle.innerText = `🎯 IS MAHINE AAPKA TURN HAI!`;
-            turnDetail.innerText = `Is mahine ka sabhi members ka contribution aapko milega.`;
+            turnTitle.innerText = "🎯 Is mahine aapka turn hai!";
+            turnDetail.innerText = "Saare members ka contribution aapko milega.";
           } else {
             const monthsLeft = myIndex - activeTurnIndex;
-            turnTitle.innerText = `Aapka Turn: Position #${myIndex + 1}`;
-            turnDetail.innerText = `Aapka number lagbhag ${monthsLeft} mahine baad aayega.`;
+            turnTitle.innerText = `📌 Aap #${myIndex+1} position par`;
+            turnDetail.innerText = `Lagbhag ${monthsLeft} mahine baad aapka turn aayega.`;
           }
         }
 
-        // Render Personal History
         const donations = data.donations || {};
         const historyTable = document.getElementById('historyTableBody');
         historyTable.innerHTML = "";
-        let foundHistory = false;
-
+        let found = false;
         Object.values(donations).forEach(item => {
           if (item.userId === currentUserData.uid || item.userPhone === currentUserData.phone) {
-            foundHistory = true;
-            historyTable.innerHTML += `
-              <tr>
-                <td>${item.month}</td>
-                <td>₹${item.amount}</td>
-                <td>${item.utr}</td>
-                <td><span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></td>
-              </tr>
-            `;
+            found = true;
+            const statusBadge = item.status === 'Received' ? 'badge-received' : 'badge-pending';
+            historyTable.innerHTML += `<tr><td>${item.month}</td><td>₹${item.amount}</td><td>${item.utr || '---'}</td><td><span class="badge ${statusBadge}">${item.status}</span></td></tr>`;
           }
         });
-
-        if (!foundHistory) {
-          historyTable.innerHTML = `<tr><td colspan="4" style="text-align:center;">Koi record nahi mila.</td></tr>`;
-        }
+        if (!found) historyTable.innerHTML = `<tr><td colspan="4" style="text-align:center;">📭 Koi record nahi</td></tr>`;
       });
     }
 
-    // Submit Payment
     document.getElementById('paymentForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
       submitBtn.disabled = true;
 
       const amount = Number(document.getElementById('amount').value);
-      const utr = document.getElementById('utr').value;
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const utr = document.getElementById('utr').value.trim() || 'N/A';
+      const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
       const date = new Date();
       const currentMonth = monthNames[date.getMonth()] + " " + date.getFullYear();
 
@@ -375,28 +482,23 @@
           userId: currentUserData.uid,
           userName: currentUserData.name || 'User',
           userPhone: currentUserData.phone || '',
-          amount: amount,
-          utr: utr,
-          month: currentMonth,
+          amount, utr, month: currentMonth,
           status: "Pending",
           timestamp: Date.now()
         });
-
-        alert("Payment Proof Submit ho gaya hai!");
-        this.reset();
-        document.getElementById('amount').value = 10;
+        alert("✅ Payment proof submit ho gaya!");
+        document.getElementById('utr').value = '';
       } catch (err) {
-        alert("Error: " + err.message);
-      } finally {
-        submitBtn.disabled = false;
+        alert("❌ Error: " + err.message);
       }
+      submitBtn.disabled = false;
     });
 
-    window.switchTab = function(tabId, btnElement) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    window.switchTab = function(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
-      btnElement.classList.add('active');
+      btn.classList.add('active');
     };
   </script>
 </body>
