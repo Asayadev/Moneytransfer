@@ -3,36 +3,92 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BC / Committee System</title>
+  <title>BC Committee System</title>
   <style>
+    /* ===== CSS VARIABLES FOR DARK MODE ===== */
+    :root {
+      --bg: #f0f4f8;
+      --card-bg: #ffffff;
+      --text: #1e293b;
+      --border: #e9edf2;
+      --header-bg: linear-gradient(135deg, #059669, #10b981);
+      --userbar-bg: #047857;
+      --shadow: 0 4px 10px rgba(0,0,0,0.04);
+      --input-bg: #fafbfc;
+      --table-header: #f8fafc;
+      --badge-pending: #fef3c7;
+      --badge-pending-text: #92400e;
+      --badge-received: #d1fae5;
+      --badge-received-text: #065f46;
+      --badge-current: #dbeafe;
+      --badge-current-text: #1e40af;
+      --turn-bg: #eff6ff;
+      --turn-border: #3b82f6;
+      --nav-bg: #f8fafc;
+      --nav-text: #475569;
+      --nav-active: #059669;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #e2e8f0;
+      --border: #334155;
+      --header-bg: linear-gradient(135deg, #0f172a, #1e293b);
+      --userbar-bg: #0f172a;
+      --shadow: 0 4px 10px rgba(0,0,0,0.3);
+      --input-bg: #334155;
+      --table-header: #334155;
+      --badge-pending: #78350f;
+      --badge-pending-text: #fbbf24;
+      --badge-received: #064e3b;
+      --badge-received-text: #34d399;
+      --badge-current: #1e3a8a;
+      --badge-current-text: #60a5fa;
+      --turn-bg: #1e293b;
+      --turn-border: #3b82f6;
+      --nav-bg: #1e293b;
+      --nav-text: #94a3b8;
+      --nav-active: #10b981;
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
       font-family: 'Segoe UI', Tahoma, sans-serif;
+      transition: background 0.3s, color 0.3s, border 0.3s;
     }
     body {
-      background: #f0f4f8;
-      color: #1e293b;
+      background: var(--bg);
+      color: var(--text);
       padding-bottom: 30px;
     }
     header {
-      background: linear-gradient(135deg, #059669, #10b981);
+      background: var(--header-bg);
       color: white;
       text-align: center;
       padding: 18px 10px 12px;
+      position: relative;
     }
-    header h1 {
-      font-size: 1.7rem;
-      font-weight: 700;
+    header h1 { font-size: 1.7rem; font-weight: 700; }
+    header p { font-size: 0.9rem; opacity: 0.9; margin-top: 4px; }
+
+    .dark-toggle {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      font-size: 1.5rem;
+      padding: 5px 10px;
+      border-radius: 30px;
+      cursor: pointer;
     }
-    header p {
-      font-size: 0.9rem;
-      opacity: 0.9;
-      margin-top: 4px;
-    }
+
     .user-bar {
-      background: #047857;
+      background: var(--userbar-bg);
       color: white;
       padding: 10px 18px;
       display: flex;
@@ -57,41 +113,37 @@
       padding: 0 16px;
     }
     .card {
-      background: white;
+      background: var(--card-bg);
       border-radius: 14px;
       padding: 20px;
       margin-bottom: 18px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.04);
-      border: 1px solid #e9edf2;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
     }
     h2 {
       color: #059669;
       font-size: 1.2rem;
-      border-bottom: 2px solid #e2f0ea;
+      border-bottom: 2px solid var(--border);
       padding-bottom: 8px;
       margin-bottom: 16px;
     }
+    [data-theme="dark"] h2 { color: #34d399; }
+
     .turn-box {
-      background: #eff6ff;
-      border: 2px solid #3b82f6;
+      background: var(--turn-bg);
+      border: 2px solid var(--turn-border);
       border-radius: 12px;
       padding: 16px;
       text-align: center;
       margin-bottom: 18px;
     }
-    .turn-box h3 {
-      color: #1d4ed8;
-      font-size: 1.2rem;
-    }
-    .turn-box p {
-      font-size: 0.95rem;
-      color: #334155;
-      margin-top: 4px;
-    }
+    .turn-box h3 { color: var(--badge-current-text); font-size: 1.2rem; }
+    .turn-box p { color: var(--text); font-size: 0.95rem; margin-top: 4px; }
+
     nav {
       display: flex;
       gap: 6px;
-      background: #f8fafc;
+      background: var(--nav-bg);
       padding: 6px;
       border-radius: 12px;
       margin-bottom: 10px;
@@ -103,32 +155,28 @@
       padding: 10px 0;
       border-radius: 10px;
       font-weight: 600;
-      color: #475569;
+      color: var(--nav-text);
       cursor: pointer;
       transition: 0.2s;
     }
     nav button.active {
-      background: #059669;
+      background: var(--nav-active);
       color: white;
       box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
     }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
     .bank-box {
-      background: #ecfdf5;
+      background: var(--bg);
       border: 1px dashed #10b981;
       border-radius: 10px;
       padding: 14px;
       margin-bottom: 16px;
       font-size: 0.9rem;
     }
-    .bank-box p {
-      margin: 4px 0;
-    }
+    .bank-box p { margin: 4px 0; }
+
     .form-group {
       margin-bottom: 14px;
       position: relative;
@@ -142,10 +190,11 @@
     input {
       width: 100%;
       padding: 10px;
-      border: 1px solid #d1d9e6;
+      border: 1px solid var(--border);
       border-radius: 8px;
       font-size: 0.95rem;
-      padding-right: 45px;
+      background: var(--input-bg);
+      color: var(--text);
     }
     .password-toggle {
       position: absolute;
@@ -168,9 +217,9 @@
       font-size: 1rem;
       cursor: pointer;
     }
-    .btn-submit:hover {
-      background: #059669;
-    }
+    .btn-submit:hover { background: #059669; }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -178,13 +227,11 @@
     }
     th, td {
       padding: 10px 6px;
-      border-bottom: 1px solid #eef2f6;
+      border-bottom: 1px solid var(--border);
       text-align: left;
     }
-    th {
-      background: #f8fafc;
-      font-weight: 600;
-    }
+    th { background: var(--table-header); font-weight: 600; }
+
     .badge {
       padding: 4px 12px;
       border-radius: 20px;
@@ -192,19 +239,10 @@
       font-weight: 700;
       display: inline-block;
     }
-    .badge-received {
-      background: #d1fae5;
-      color: #065f46;
-    }
-    .badge-pending {
-      background: #fef3c7;
-      color: #92400e;
-    }
-    .badge-current {
-      background: #dbeafe;
-      color: #1e40af;
-      border: 1px solid #3b82f6;
-    }
+    .badge-received { background: var(--badge-received); color: var(--badge-received-text); }
+    .badge-pending { background: var(--badge-pending); color: var(--badge-pending-text); }
+    .badge-current { background: var(--badge-current); color: var(--badge-current-text); border: 1px solid #3b82f6; }
+
     .auth-toggle {
       text-align: center;
       margin-top: 14px;
@@ -215,16 +253,9 @@
       cursor: pointer;
       font-weight: 600;
     }
-    .small-note {
-      font-size: 0.75rem;
-      color: #64748b;
-      margin-top: 4px;
-    }
-    .highlight-row {
-      background: #dbeafe !important;
-      border-left: 4px solid #3b82f6;
-      font-weight: 600;
-    }
+    .small-note { font-size: 0.75rem; color: #64748b; margin-top: 4px; }
+    .highlight-row { background: var(--turn-bg) !important; border-left: 4px solid #3b82f6; font-weight: 600; }
+
     .stats-mini {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -232,24 +263,60 @@
       margin-bottom: 15px;
     }
     .stats-mini .stat-item {
-      background: #f8fafc;
+      background: var(--bg);
       padding: 10px;
       border-radius: 8px;
       text-align: center;
     }
-    .stats-mini .stat-item .num {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #059669;
+    .stats-mini .stat-item .num { font-size: 1.3rem; font-weight: 700; color: #059669; }
+    .stats-mini .stat-item .lbl { font-size: 0.7rem; color: #64748b; }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
     }
-    .stats-mini .stat-item .lbl {
-      font-size: 0.7rem;
-      color: #64748b;
+    .btn-group .btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.8rem;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
     }
+    .btn-whatsapp { background: #25D366; color: white; }
+    .btn-pdf { background: #ef4444; color: white; }
+    .btn-excel { background: #10b981; color: white; }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      z-index: 9999;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .toast.success { background: #059669; }
+    .toast.error { background: #ef4444; }
+
     @media (max-width: 480px) {
       header h1 { font-size: 1.3rem; }
       .user-bar { flex-wrap: wrap; gap: 6px; }
       .stats-mini { grid-template-columns: 1fr 1fr; }
+      .dark-toggle { position: relative; top: auto; right: auto; margin-top: 8px; }
+      header { display: flex; flex-direction: column; align-items: center; }
     }
   </style>
 </head>
@@ -258,6 +325,7 @@
   <header>
     <h1>💰 10₹ Monthly BC / Committee</h1>
     <p id="cycleDisplay">Cycle: 1</p>
+    <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
   </header>
 
   <div id="userBar" class="user-bar" style="display:none;">
@@ -266,6 +334,9 @@
   </div>
 
   <div class="container">
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="toast"></div>
 
     <!-- LOGIN / REGISTER -->
     <div id="authSection" class="card">
@@ -315,6 +386,16 @@
       <div class="turn-box" id="turnBox">
         <h3 id="myTurnStatus">Loading...</h3>
         <p id="myTurnDetail">Kripya wait karein...</p>
+        <div id="whatsappBtnContainer" style="margin-top:10px; display:none;">
+          <a id="whatsappLink" href="#" target="_blank" class="btn-whatsapp" style="display:inline-block; padding:8px 20px; border-radius:8px; text-decoration:none; color:white; background:#25D366;">
+            💬 WhatsApp par notify karein
+          </a>
+        </div>
+        <div id="pdfBtnContainer" style="margin-top:8px; display:none;">
+          <button onclick="generatePDF()" class="btn-pdf" style="padding:8px 20px; border:none; border-radius:8px; cursor:pointer; background:#ef4444; color:white;">
+            📄 Receipt Download (PDF)
+          </button>
+        </div>
       </div>
 
       <nav id="mainNav">
@@ -355,7 +436,7 @@
               <input type="text" id="utr" placeholder="Jaise: 123456789012" maxlength="12">
               <p class="small-note">⚠️ Agar UTR nahi hai toh kuch bhi daal sakte hain</p>
             </div>
-            <button type="submit" class="btn-submit">✅ Submit Proof</button>
+            <button type="submit" class="btn-submit" id="submitBtn">✅ Submit Proof</button>
           </form>
         </div>
       </section>
@@ -364,6 +445,11 @@
       <section id="history-tab" class="tab-content">
         <div class="card">
           <h2>📖 Mera History</h2>
+          <div style="margin-bottom:10px;">
+            <button onclick="exportExcel()" class="btn-excel" style="padding:8px 16px; border:none; border-radius:8px; cursor:pointer; background:#10b981; color:white;">
+              📊 Excel Download (CSV)
+            </button>
+          </div>
           <table>
             <thead><tr><th>Month</th><th>Amount</th><th>UTR</th><th>Status</th></tr></thead>
             <tbody id="historyTableBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
@@ -374,6 +460,7 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -395,8 +482,42 @@
 
     let currentUserData = null;
     let isRegisterMode = false;
+    let myHistoryData = [];
+    let currentTurnData = null;
+    let currentCycle = 1;
 
-    // Password Toggle
+    // ====== TOAST FUNCTION ======
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.className = 'toast ' + type;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
+
+    // ====== DARK MODE ======
+    window.toggleDarkMode = function() {
+      const html = document.documentElement;
+      const btn = document.querySelector('.dark-toggle');
+      if (html.getAttribute('data-theme') === 'dark') {
+        html.removeAttribute('data-theme');
+        btn.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        btn.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+      }
+    };
+
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.querySelector('.dark-toggle').textContent = '☀️';
+    }
+
+    // ====== PASSWORD TOGGLE ======
     window.togglePassword = function() {
       const pwd = document.getElementById('authPassword');
       const btn = document.querySelector('.password-toggle');
@@ -432,12 +553,13 @@
           await set(ref(db, 'users/' + res.user.uid), {
             name, email, phone, uid: res.user.uid, createdAt: Date.now()
           });
-          alert("✅ Account ban gaya! Ab login karein.");
+          showToast("✅ Account ban gaya! Ab login karein.", "success");
         } else {
           await signInWithEmailAndPassword(auth, email, password);
+          showToast("✅ Login successful!", "success");
         }
       } catch (err) {
-        alert("❌ Error: " + err.message);
+        showToast("❌ " + err.message, "error");
       }
     });
 
@@ -471,7 +593,8 @@
         if (!snapshot.exists()) return;
         const data = snapshot.val();
 
-        document.getElementById('cycleDisplay').innerText = "Cycle: " + (data.currentCycle || 1);
+        currentCycle = data.currentCycle || 1;
+        document.getElementById('cycleDisplay').innerText = "Cycle: " + currentCycle;
 
         if (data.bankDetails) {
           document.getElementById('dispUpi').innerText = data.bankDetails.upi || '-';
@@ -480,21 +603,18 @@
           document.getElementById('dispIfsc').innerText = data.bankDetails.ifsc || '-';
         }
 
-        // ====== STATS ======
+        // Stats
         const users = data.users || {};
-        const totalUsers = Object.keys(users).length;
-        document.getElementById('statTotalUsers').innerText = totalUsers;
+        document.getElementById('statTotalUsers').innerText = Object.keys(users).length;
 
         const donations = data.donations || {};
         let totalAmount = 0;
         Object.values(donations).forEach(item => {
-          if (item.status === 'Approved') {
-            totalAmount += Number(item.amount || 0);
-          }
+          if (item.status === 'Approved') totalAmount += Number(item.amount || 0);
         });
         document.getElementById('statTotalAmount').innerText = '₹' + totalAmount;
 
-        // ====== QUEUE RENDER ======
+        // Queue
         const queue = data.queue || [];
         const queueTable = document.getElementById('queueTableBody');
         queueTable.innerHTML = "";
@@ -502,15 +622,11 @@
         let activeTurnIndex = -1;
 
         if (queue.length === 0) {
-          queueTable.innerHTML = `<tr><td colspan="3" style="text-align:center;">⏳ Queue empty, admin wait karein</td></tr>`;
+          queueTable.innerHTML = `<tr><td colspan="3" style="text-align:center;">⏳ Queue empty</td></tr>`;
         } else {
           queue.forEach((member, idx) => {
-            if (member.uid === currentUserData.uid || member.phone === currentUserData.phone) {
-              myIndex = idx;
-            }
-            if (activeTurnIndex === -1 && member.status === 'Pending') {
-              activeTurnIndex = idx;
-            }
+            if (member.uid === currentUserData.uid || member.phone === currentUserData.phone) myIndex = idx;
+            if (activeTurnIndex === -1 && member.status === 'Pending') activeTurnIndex = idx;
 
             const isCurrentTurn = (idx === activeTurnIndex && member.status === 'Pending');
             const isReceived = member.status === 'Received';
@@ -523,7 +639,6 @@
             } else {
               badgeHtml = `<span class="badge badge-pending">⏳ Pending</span>`;
             }
-
             const rowClass = isCurrentTurn ? 'highlight-row' : '';
 
             queueTable.innerHTML += `
@@ -536,40 +651,61 @@
           });
         }
 
-        // ====== USER PERSONAL TURN STATUS ======
+        // Turn Status & WhatsApp/PDF Buttons
         const turnTitle = document.getElementById('myTurnStatus');
         const turnDetail = document.getElementById('myTurnDetail');
+        const whatsappContainer = document.getElementById('whatsappBtnContainer');
+        const pdfContainer = document.getElementById('pdfBtnContainer');
+        const whatsappLink = document.getElementById('whatsappLink');
 
         if (myIndex === -1) {
           turnTitle.innerText = "❌ Queue mein nahi hain";
           turnDetail.innerText = "Admin se request karein apna naam add karwane ke liye.";
           document.getElementById('statMyStatus').innerText = 'Not in Queue';
+          whatsappContainer.style.display = 'none';
+          pdfContainer.style.display = 'none';
+          currentTurnData = null;
         } else {
           const myData = queue[myIndex];
           if (myData.status === 'Received') {
             turnTitle.innerText = "✅ Aapka turn ho chuka hai!";
             turnDetail.innerText = "Aapko is cycle ka amount mil gaya.";
             document.getElementById('statMyStatus').innerText = '✅ Received';
+            whatsappContainer.style.display = 'none';
+            pdfContainer.style.display = 'none';
+            currentTurnData = null;
           } else if (myIndex === activeTurnIndex) {
             turnTitle.innerText = "🎯 Is mahine aapka turn hai!";
-            turnDetail.innerText = "Saare members ka contribution aapko milega.";
+            turnDetail.innerText = `Saare members ka contribution aapko milega. Cycle ${currentCycle} | Turn #${myIndex+1}`;
             document.getElementById('statMyStatus').innerText = '🎯 Current Turn';
+            currentTurnData = myData;
+            // WhatsApp
+            const phone = myData.phone || '';
+            const msg = encodeURIComponent(`🙏 Namaste ${myData.name},\n\nAapka turn aa gaya hai! 🎯\nCycle: ${currentCycle}\nTurn: #${myIndex+1}\n\nKripya apna payment collect karein.\n\nTeam BC Committee`);
+            whatsappLink.href = `https://wa.me/${phone}?text=${msg}`;
+            whatsappContainer.style.display = 'block';
+            pdfContainer.style.display = 'block';
           } else {
             const monthsLeft = myIndex - activeTurnIndex;
             turnTitle.innerText = `📌 Aap #${myIndex+1} position par`;
             turnDetail.innerText = `Lagbhag ${monthsLeft} mahine baad aapka turn aayega.`;
             document.getElementById('statMyStatus').innerText = `#${myIndex+1}`;
+            whatsappContainer.style.display = 'none';
+            pdfContainer.style.display = 'none';
+            currentTurnData = null;
           }
         }
 
-        // ====== PERSONAL HISTORY ======
+        // History
         const historyTable = document.getElementById('historyTableBody');
         historyTable.innerHTML = "";
+        myHistoryData = [];
         let found = false;
         Object.values(donations).forEach(item => {
           if (item.userId === currentUserData.uid || item.userPhone === currentUserData.phone) {
             found = true;
             const statusClass = item.status === 'Approved' ? 'badge-received' : 'badge-pending';
+            myHistoryData.push(item);
             historyTable.innerHTML += `
               <tr>
                 <td>${item.month}</td>
@@ -584,35 +720,116 @@
       });
     }
 
-    // ====== PAYMENT SUBMIT ======
+    // ====== PAYMENT SUBMIT - FIXED ======
     document.getElementById('paymentForm').addEventListener('submit', async function(e) {
       e.preventDefault();
+      
       const submitBtn = document.getElementById('submitBtn');
       submitBtn.disabled = true;
-
-      const amount = Number(document.getElementById('amount').value);
-      const utr = document.getElementById('utr').value.trim() || 'N/A';
-      const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      const date = new Date();
-      const currentMonth = monthNames[date.getMonth()] + " " + date.getFullYear();
+      submitBtn.textContent = '⏳ Submitting...';
 
       try {
+        const amount = Number(document.getElementById('amount').value) || 10;
+        const utr = document.getElementById('utr').value.trim() || 'N/A';
+        const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const date = new Date();
+        const currentMonth = monthNames[date.getMonth()] + " " + date.getFullYear();
+
+        if (!currentUserData) {
+          throw new Error("User not logged in!");
+        }
+
         const newRef = push(ref(db, 'donations'));
         await set(newRef, {
           userId: currentUserData.uid,
           userName: currentUserData.name || 'User',
           userPhone: currentUserData.phone || '',
-          amount, utr, month: currentMonth,
+          amount: amount,
+          utr: utr,
+          month: currentMonth,
           status: "Pending",
           timestamp: Date.now()
         });
-        alert("✅ Payment proof submit ho gaya!");
+
+        showToast("✅ Payment proof submit ho gaya! Admin approve karega.", "success");
         document.getElementById('utr').value = '';
+        
+        // Generate PDF receipt
+        generatePaymentReceipt(currentUserData.name, amount, utr, currentMonth);
+        
       } catch (err) {
-        alert("❌ Error: " + err.message);
+        showToast("❌ Error: " + err.message, "error");
+        console.error("Payment Error:", err);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✅ Submit Proof';
       }
-      submitBtn.disabled = false;
     });
+
+    // ====== GENERATE PDF RECEIPT ======
+    function generatePaymentReceipt(name, amount, utr, month) {
+      const receiptHTML = `
+        <div style="padding:30px; font-family:Arial; max-width:400px; margin:auto; border:2px solid #10b981; border-radius:10px; text-align:center;">
+          <h2 style="color:#059669;">💰 Payment Receipt</h2>
+          <hr style="border:1px dashed #10b981;">
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Amount:</strong> ₹${amount}</p>
+          <p><strong>UTR:</strong> ${utr}</p>
+          <p><strong>Month:</strong> ${month}</p>
+          <p><strong>Cycle:</strong> ${currentCycle}</p>
+          <hr style="border:1px dashed #10b981;">
+          <p style="font-size:0.8rem; color:#64748b;">✅ Payment Submitted!<br>Waiting for admin approval.</p>
+        </div>
+      `;
+
+      const win = window.open('', '_blank');
+      win.document.write(`
+        <html>
+          <head><title>Payment Receipt</title></head>
+          <body style="margin:0; padding:20px; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f0f4f8;">
+            ${receiptHTML}
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>
+            <script>
+              setTimeout(() => {
+                const element = document.body.firstElementChild;
+                html2pdf().from(element).save('Receipt_${name}_${month}.pdf');
+              }, 500);
+            <\/script>
+          </body>
+        </html>
+      `);
+      win.document.close();
+    }
+
+    // ====== PDF GENERATE (From Turn Box) ======
+    window.generatePDF = function() {
+      if (!currentTurnData) return showToast("❌ Koi active turn nahi hai.", "error");
+      generatePaymentReceipt(
+        currentTurnData.name,
+        10,
+        'TURN-' + (new Date().getTime()),
+        new Date().toLocaleString('default', { month: 'short' }) + ' ' + new Date().getFullYear()
+      );
+    };
+
+    // ====== EXCEL EXPORT ======
+    window.exportExcel = function() {
+      if (myHistoryData.length === 0) return showToast("❌ Koi history nahi hai!", "error");
+
+      let csv = "Month,Amount,UTR,Status\n";
+      myHistoryData.forEach(item => {
+        csv += `"${item.month}",${item.amount},"${item.utr || 'N/A'}","${item.status}"\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `History_${currentUserData.name}_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("✅ Excel download ho raha hai!", "success");
+    };
 
     window.switchTab = function(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
