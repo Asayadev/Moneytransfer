@@ -3,227 +3,311 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BC Committee System</title>
+  <title>BC Committee - Dashboard</title>
   <style>
-    /* ===== CSS VARIABLES FOR DARK MODE ===== */
-    :root {
-      --bg: #f0f4f8;
-      --card-bg: #ffffff;
-      --text: #1e293b;
-      --border: #e9edf2;
-      --header-bg: linear-gradient(135deg, #059669, #10b981);
-      --userbar-bg: #047857;
-      --shadow: 0 4px 10px rgba(0,0,0,0.04);
-      --input-bg: #fafbfc;
-      --table-header: #f8fafc;
-      --badge-pending: #fef3c7;
-      --badge-pending-text: #92400e;
-      --badge-received: #d1fae5;
-      --badge-received-text: #065f46;
-      --badge-current: #dbeafe;
-      --badge-current-text: #1e40af;
-      --turn-bg: #eff6ff;
-      --turn-border: #3b82f6;
-      --nav-bg: #f8fafc;
-      --nav-text: #475569;
-      --nav-active: #059669;
-    }
-
-    [data-theme="dark"] {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --text: #e2e8f0;
-      --border: #334155;
-      --header-bg: linear-gradient(135deg, #0f172a, #1e293b);
-      --userbar-bg: #0f172a;
-      --shadow: 0 4px 10px rgba(0,0,0,0.3);
-      --input-bg: #334155;
-      --table-header: #334155;
-      --badge-pending: #78350f;
-      --badge-pending-text: #fbbf24;
-      --badge-received: #064e3b;
-      --badge-received-text: #34d399;
-      --badge-current: #1e3a8a;
-      --badge-current-text: #60a5fa;
-      --turn-bg: #1e293b;
-      --turn-border: #3b82f6;
-      --nav-bg: #1e293b;
-      --nav-text: #94a3b8;
-      --nav-active: #10b981;
-    }
-
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      transition: background 0.3s, color 0.3s, border 0.3s;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     }
+
     body {
-      background: var(--bg);
-      color: var(--text);
+      background: #f0f4f8;
+      color: #1e293b;
+      min-height: 100vh;
       padding-bottom: 30px;
     }
-    header {
-      background: var(--header-bg);
-      color: white;
-      text-align: center;
-      padding: 18px 10px 12px;
-      position: relative;
-    }
-    header h1 { font-size: 1.7rem; font-weight: 700; }
-    header p { font-size: 0.9rem; opacity: 0.9; margin-top: 4px; }
 
-    .dark-toggle {
-      position: absolute;
-      top: 10px;
-      right: 15px;
+    /* ===== HEADER ===== */
+    .header {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: white;
+      padding: 20px 16px 40px;
+      position: relative;
+      border-radius: 0 0 30px 30px;
+    }
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+    .header h1 span {
+      font-weight: 300;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .header-actions button {
       background: rgba(255,255,255,0.2);
       border: none;
       color: white;
-      font-size: 1.5rem;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .header-actions .logout-btn {
+      background: #ef4444;
+    }
+    .dark-toggle {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      font-size: 1.2rem;
       padding: 5px 10px;
       border-radius: 30px;
       cursor: pointer;
     }
 
-    .user-bar {
-      background: var(--userbar-bg);
-      color: white;
-      padding: 10px 18px;
+    .user-greeting {
+      margin-top: 12px;
+    }
+    .user-greeting h2 {
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+    .user-greeting p {
+      opacity: 0.8;
+      font-size: 0.9rem;
+    }
+
+    /* ===== CYCLE STATUS CARDS ===== */
+    .cycle-status {
+      display: flex;
+      gap: 12px;
+      margin-top: -20px;
+      padding: 0 16px;
+    }
+    .cycle-card {
+      flex: 1;
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 1px solid #e9edf2;
+    }
+    .cycle-card .label {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .cycle-card .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 4px 0;
+    }
+    .cycle-card .value.active { color: #10b981; }
+    .cycle-card .value.completed { color: #3b82f6; }
+    .cycle-card .badge {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 20px;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+    .badge-active { background: #d1fae5; color: #065f46; }
+    .badge-completed { background: #dbeafe; color: #1e40af; }
+
+    /* ===== STATS GRID ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 16px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #e9edf2;
+      text-align: center;
+    }
+    .stat-card .icon {
+      font-size: 1.8rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .stat-card .number {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #059669;
+    }
+    .stat-card .label {
+      font-size: 0.7rem;
+      color: #94a3b8;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* ===== PROGRESS SECTION ===== */
+    .progress-section {
+      padding: 0 16px;
+      margin-bottom: 16px;
+    }
+    .progress-card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #e9edf2;
+    }
+    .progress-card .header-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.95rem;
-      flex-wrap: wrap;
-      gap: 6px;
+      margin-bottom: 8px;
     }
-    .user-bar button {
-      background: #ef4444;
-      border: none;
-      color: white;
-      padding: 5px 14px;
-      border-radius: 6px;
+    .progress-card .header-row h3 {
+      font-size: 1rem;
       font-weight: 600;
-      cursor: pointer;
     }
-    .container {
-      max-width: 680px;
-      margin: 18px auto;
-      padding: 0 16px;
-    }
-    .card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 18px;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--border);
-    }
-    h2 {
-      color: #059669;
+    .progress-card .header-row .percent {
       font-size: 1.2rem;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 8px;
+      font-weight: 700;
+      color: #059669;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .progress-bar .fill {
+      height: 100%;
+      background: linear-gradient(90deg, #10b981, #059669);
+      border-radius: 20px;
+      transition: width 0.6s ease;
+    }
+    .progress-details {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+    .progress-details .amount {
+      font-weight: 600;
+      color: #1e293b;
+    }
+
+    /* ===== TURN STATUS ===== */
+    .turn-status {
+      padding: 0 16px;
       margin-bottom: 16px;
     }
-    [data-theme="dark"] h2 { color: #34d399; }
-
-    .turn-box {
-      background: var(--turn-bg);
-      border: 2px solid var(--turn-border);
-      border-radius: 12px;
-      padding: 16px;
+    .turn-card {
+      background: linear-gradient(135deg, #eff6ff, #dbeafe);
+      border: 2px solid #3b82f6;
+      border-radius: 16px;
+      padding: 18px;
       text-align: center;
-      margin-bottom: 18px;
     }
-    .turn-box h3 { color: var(--badge-current-text); font-size: 1.2rem; }
-    .turn-box p { color: var(--text); font-size: 0.95rem; margin-top: 4px; }
+    .turn-card .label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #1e40af;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: #bfdbfe;
+      display: inline-block;
+      padding: 2px 14px;
+      border-radius: 20px;
+      margin-bottom: 6px;
+    }
+    .turn-card h3 {
+      color: #1e3a8a;
+      font-size: 1.2rem;
+      margin: 6px 0;
+    }
+    .turn-card p {
+      color: #334155;
+      font-size: 0.9rem;
+    }
+    .turn-card .action-btns {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .turn-card .action-btns a, .turn-card .action-btns button {
+      padding: 8px 18px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .btn-whatsapp { background: #25D366; color: white; }
+    .btn-pdf { background: #ef4444; color: white; }
 
-    nav {
+    /* ===== NAV TABS ===== */
+    .nav-tabs {
       display: flex;
       gap: 6px;
-      background: var(--nav-bg);
+      background: white;
       padding: 6px;
-      border-radius: 12px;
-      margin-bottom: 10px;
+      border-radius: 14px;
+      margin: 0 16px 16px;
+      border: 1px solid #e9edf2;
     }
-    nav button {
+    .nav-tabs button {
       flex: 1;
       background: transparent;
       border: none;
       padding: 10px 0;
       border-radius: 10px;
       font-weight: 600;
-      color: var(--nav-text);
+      color: #64748b;
       cursor: pointer;
       transition: 0.2s;
-    }
-    nav button.active {
-      background: var(--nav-active);
-      color: white;
-      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
-    }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    .bank-box {
-      background: var(--bg);
-      border: 1px dashed #10b981;
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 16px;
-      font-size: 0.9rem;
-    }
-    .bank-box p { margin: 4px 0; }
-
-    .form-group {
-      margin-bottom: 14px;
-      position: relative;
-    }
-    label {
-      display: block;
-      font-weight: 600;
       font-size: 0.85rem;
-      margin-bottom: 4px;
     }
-    input {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.95rem;
-      background: var(--input-bg);
-      color: var(--text);
-    }
-    input:focus {
-      outline: 2px solid #10b981;
-      outline-offset: 1px;
-      border-color: transparent;
-    }
-    .password-toggle {
-      position: absolute;
-      right: 12px;
-      top: 35px;
-      cursor: pointer;
-      font-size: 1.2rem;
-      background: none;
-      border: none;
-      color: #64748b;
-    }
-    .btn-submit {
-      width: 100%;
-      background: #10b981;
+    .nav-tabs button.active {
+      background: #059669;
       color: white;
-      border: none;
-      padding: 12px;
-      font-weight: 700;
-      border-radius: 10px;
-      font-size: 1rem;
-      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
     }
-    .btn-submit:hover { background: #059669; }
-    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ===== TAB CONTENT ===== */
+    .tab-content {
+      display: none;
+      padding: 0 16px;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    .tab-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      border: 1px solid #e9edf2;
+      margin-bottom: 16px;
+    }
+    .tab-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #1e293b;
+    }
 
     table {
       width: 100%;
@@ -231,74 +315,74 @@
       font-size: 0.85rem;
     }
     th, td {
-      padding: 10px 6px;
-      border-bottom: 1px solid var(--border);
+      padding: 10px 8px;
+      border-bottom: 1px solid #eef2f6;
       text-align: left;
     }
-    th { background: var(--table-header); font-weight: 600; }
-
+    th {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: #94a3b8;
+      font-weight: 600;
+    }
     .badge {
-      padding: 4px 12px;
+      padding: 3px 12px;
       border-radius: 20px;
       font-size: 0.7rem;
-      font-weight: 700;
+      font-weight: 600;
       display: inline-block;
     }
-    .badge-received { background: var(--badge-received); color: var(--badge-received-text); }
-    .badge-pending { background: var(--badge-pending); color: var(--badge-pending-text); }
-    .badge-current { background: var(--badge-current); color: var(--badge-current-text); border: 1px solid #3b82f6; }
+    .badge-received { background: #d1fae5; color: #065f46; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-current { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
+    .highlight-row { background: #eff6ff !important; border-left: 4px solid #3b82f6; }
 
-    .auth-toggle {
-      text-align: center;
-      margin-top: 14px;
-      font-size: 0.9rem;
+    .form-group {
+      margin-bottom: 14px;
     }
-    .auth-toggle span {
-      color: #2563eb;
-      cursor: pointer;
+    .form-group label {
+      display: block;
       font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 4px;
     }
-    .small-note { font-size: 0.75rem; color: #64748b; margin-top: 4px; }
-    .highlight-row { background: var(--turn-bg) !important; border-left: 4px solid #3b82f6; font-weight: 600; }
-
-    .stats-mini {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 15px;
-    }
-    .stats-mini .stat-item {
-      background: var(--bg);
-      padding: 10px;
+    .form-group input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d1d9e6;
       border-radius: 8px;
-      text-align: center;
+      font-size: 0.95rem;
+      background: #fafbfc;
     }
-    .stats-mini .stat-item .num { font-size: 1.2rem; font-weight: 700; color: #059669; }
-    .stats-mini .stat-item .lbl { font-size: 0.65rem; color: #64748b; }
-
-    .btn-group {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
+    .form-group input:focus {
+      outline: 2px solid #10b981;
+      outline-offset: 1px;
+      border-color: transparent;
     }
-    .btn-group .btn {
-      flex: 1;
-      min-width: 100px;
-      padding: 8px 12px;
+    .btn-submit {
+      width: 100%;
+      padding: 12px;
+      background: #10b981;
+      color: white;
       border: none;
-      border-radius: 8px;
-      font-weight: 600;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1rem;
       cursor: pointer;
-      font-size: 0.8rem;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
     }
-    .btn-whatsapp { background: #25D366; color: white; }
-    .btn-pdf { background: #ef4444; color: white; }
-    .btn-excel { background: #10b981; color: white; }
+    .btn-submit:hover { background: #059669; }
 
+    .bank-box {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+      border: 1px solid #e9edf2;
+    }
+    .bank-box p { margin: 4px 0; }
+
+    /* ===== TOAST ===== */
     .toast {
       position: fixed;
       bottom: 20px;
@@ -307,7 +391,7 @@
       background: #1e293b;
       color: white;
       padding: 12px 24px;
-      border-radius: 10px;
+      border-radius: 12px;
       font-weight: 600;
       z-index: 9999;
       display: none;
@@ -318,37 +402,91 @@
     .toast.success { background: #059669; }
     .toast.error { background: #ef4444; }
 
-    @media (max-width: 600px) {
-      .stats-mini { grid-template-columns: repeat(2, 1fr); }
+    /* ===== AUTH ===== */
+    .auth-container {
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 0 16px;
     }
+    .auth-card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      border: 1px solid #e9edf2;
+    }
+    .auth-card h2 {
+      color: #059669;
+      font-size: 1.3rem;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .auth-card .form-group {
+      position: relative;
+    }
+    .auth-card .password-toggle {
+      position: absolute;
+      right: 12px;
+      top: 35px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      background: none;
+      border: none;
+      color: #94a3b8;
+    }
+    .auth-card .auth-toggle {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+    .auth-card .auth-toggle span {
+      color: #2563eb;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .small-note {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    /* ===== DARK MODE ===== */
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #e2e8f0;
+      --border: #334155;
+    }
+    [data-theme="dark"] body { background: #0f172a; color: #e2e8f0; }
+    [data-theme="dark"] .cycle-card,
+    [data-theme="dark"] .stat-card,
+    [data-theme="dark"] .progress-card,
+    [data-theme="dark"] .tab-card,
+    [data-theme="dark"] .auth-card,
+    [data-theme="dark"] .nav-tabs { background: #1e293b; border-color: #334155; }
+    [data-theme="dark"] .turn-card { background: #1e293b; border-color: #3b82f6; }
+    [data-theme="dark"] .turn-card h3 { color: #60a5fa; }
+    [data-theme="dark"] .turn-card p { color: #94a3b8; }
+    [data-theme="dark"] .bank-box { background: #1e293b; border-color: #334155; }
+    [data-theme="dark"] .stat-card .number { color: #34d399; }
+    [data-theme="dark"] .progress-card .header-row .percent { color: #34d399; }
+
     @media (max-width: 480px) {
-      header h1 { font-size: 1.3rem; }
-      .user-bar { flex-wrap: wrap; gap: 6px; }
-      .dark-toggle { position: relative; top: auto; right: auto; margin-top: 8px; }
-      header { display: flex; flex-direction: column; align-items: center; }
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .cycle-status { flex-direction: row; }
+      .header h1 { font-size: 1.1rem; }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>💰 10₹ Monthly BC / Committee</h1>
-    <p id="cycleDisplay">Cycle: 1</p>
-    <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
-  </header>
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
 
-  <div id="userBar" class="user-bar" style="display:none;">
-    <span>🙏 <strong id="userEmailDisplay">User</strong></span>
-    <button onclick="logoutUser()">Logout</button>
-  </div>
-
-  <div class="container">
-
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="toast"></div>
-
-    <!-- LOGIN / REGISTER -->
-    <div id="authSection" class="card">
+  <!-- AUTH SECTION -->
+  <div id="authSection" class="auth-container">
+    <div class="auth-card">
       <h2 id="authTitle">🔐 Login</h2>
       <form id="authForm">
         <div class="form-group" id="nameGroup" style="display: none;">
@@ -364,7 +502,7 @@
           <input type="tel" id="authPhone" placeholder="9876543210" required pattern="[0-9]{10}">
         </div>
         <div class="form-group">
-          <label>🔑 Password (6+ chars)</label>
+          <label>🔑 Password</label>
           <input type="password" id="authPassword" placeholder="●●●●●●" required minlength="6">
           <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
         </div>
@@ -372,106 +510,155 @@
       </form>
       <p class="auth-toggle" id="authToggleText">Naya account? <span onclick="toggleAuthMode(true)">Register karein</span></p>
     </div>
+  </div>
 
-    <!-- MAIN APP -->
-    <div id="appSection" style="display:none;">
+  <!-- MAIN DASHBOARD -->
+  <div id="appSection" style="display:none;">
 
-      <!-- Mini Stats - 4 Columns -->
-      <div class="stats-mini" id="userStats">
-        <div class="stat-item">
-          <div class="num" id="statTotalUsers">0</div>
-          <div class="lbl">👥 Total Users</div>
-        </div>
-        <div class="stat-item">
-          <div class="num" id="statTotalAmount">₹0</div>
-          <div class="lbl">💰 Total Collection</div>
-        </div>
-        <div class="stat-item">
-          <div class="num" id="statThisMonth">₹0</div>
-          <div class="lbl">📆 This Month</div>
-        </div>
-        <div class="stat-item">
-          <div class="num" id="statMyStatus">-</div>
-          <div class="lbl">📌 My Status</div>
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-top">
+        <h1>BC Committee <span>| Cycle <span id="cycleDisplay">1</span></span></h1>
+        <div class="header-actions">
+          <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+          <button class="logout-btn" onclick="logoutUser()">Logout</button>
         </div>
       </div>
+      <div class="user-greeting">
+        <h2>🙏 <span id="userEmailDisplay">User</span></h2>
+        <p id="greetingMsg">Welcome back! Here's your committee status.</p>
+      </div>
+    </div>
 
-      <div class="turn-box" id="turnBox">
+    <!-- CYCLE STATUS -->
+    <div class="cycle-status">
+      <div class="cycle-card">
+        <div class="label">Active</div>
+        <div class="value active" id="activeCycleCount">0</div>
+        <span class="badge badge-active">● Active</span>
+      </div>
+      <div class="cycle-card">
+        <div class="label">Completed</div>
+        <div class="value completed" id="completedCycleCount">0</div>
+        <span class="badge badge-completed">● Completed</span>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="icon">💰</span>
+        <div class="number" id="statTotalAmount">₹0</div>
+        <div class="label">Total Collection</div>
+      </div>
+      <div class="stat-card">
+        <span class="icon">📆</span>
+        <div class="number" id="statThisMonth">₹0</div>
+        <div class="label">This Month</div>
+      </div>
+      <div class="stat-card">
+        <span class="icon">👥</span>
+        <div class="number" id="statTotalUsers">0</div>
+        <div class="label">Total Members</div>
+      </div>
+      <div class="stat-card">
+        <span class="icon">📌</span>
+        <div class="number" id="statMyStatus">-</div>
+        <div class="label">My Status</div>
+      </div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-section">
+      <div class="progress-card">
+        <div class="header-row">
+          <h3>📊 Collection Progress</h3>
+          <span class="percent" id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="fill" id="progressFill" style="width: 0%;"></div>
+        </div>
+        <div class="progress-details">
+          <span>Collected: <span class="amount" id="progressCollected">₹0</span></span>
+          <span>Target: <span class="amount" id="progressTarget">₹0</span></span>
+          <span><span id="progressMembers">0</span> Members</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TURN STATUS -->
+    <div class="turn-status">
+      <div class="turn-card" id="turnCard">
+        <span class="label">🎯 Your Turn Status</span>
         <h3 id="myTurnStatus">Loading...</h3>
         <p id="myTurnDetail">Kripya wait karein...</p>
-        <div id="whatsappBtnContainer" style="margin-top:10px; display:none;">
-          <a id="whatsappLink" href="#" target="_blank" class="btn-whatsapp" style="display:inline-block; padding:8px 20px; border-radius:8px; text-decoration:none; color:white; background:#25D366;">
-            💬 WhatsApp par notify karein
-          </a>
-        </div>
-        <div id="pdfBtnContainer" style="margin-top:8px; display:none;">
-          <button onclick="generatePDF()" class="btn-pdf" style="padding:8px 20px; border:none; border-radius:8px; cursor:pointer; background:#ef4444; color:white;">
-            📄 Receipt Download (PDF)
-          </button>
+        <div class="action-btns" id="turnActions" style="display:none;">
+          <a id="whatsappLink" href="#" target="_blank" class="btn-whatsapp">💬 WhatsApp</a>
+          <button onclick="generatePDF()" class="btn-pdf">📄 Receipt PDF</button>
         </div>
       </div>
-
-      <nav id="mainNav">
-        <button class="nav-btn active" onclick="switchTab('queue-tab', this)">📋 Queue</button>
-        <button class="nav-btn" onclick="switchTab('pay-tab', this)">💳 Pay</button>
-        <button class="nav-btn" onclick="switchTab('history-tab', this)">📜 History</button>
-      </nav>
-
-      <!-- QUEUE -->
-      <section id="queue-tab" class="tab-content active">
-        <div class="card">
-          <h2>📌 Rotation Queue <span style="font-size:0.7rem;color:#64748b;font-weight:normal;">(Current turn highlighted 👑)</span></h2>
-          <table>
-            <thead><tr><th>#</th><th>Member</th><th>Status</th></tr></thead>
-            <tbody id="queueTableBody"><tr><td colspan="3" style="text-align:center;">Loading...</td></tr></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- PAYMENT -->
-      <section id="pay-tab" class="tab-content">
-        <div class="card">
-          <h2>💸 Payment Submit</h2>
-          <div class="bank-box">
-            <p><strong>UPI:</strong> <span id="dispUpi">---</span></p>
-            <p><strong>Account:</strong> <span id="dispAccName">---</span></p>
-            <p><strong>Acc No:</strong> <span id="dispAccNo">---</span></p>
-            <p><strong>IFSC:</strong> <span id="dispIfsc">---</span></p>
-          </div>
-
-          <form id="paymentForm">
-            <div class="form-group">
-              <label>₹ Amount <span style="color:#ef4444;">*</span></label>
-              <input type="number" id="amount" placeholder="Enter amount" min="1" required>
-              <p class="small-note">💡 Aap kitna bhi amount daal sakte hain (minimum ₹1)</p>
-            </div>
-            <div class="form-group">
-              <label>UTR / Reference ID <span style="color:#ef4444;">*</span></label>
-              <input type="text" id="utr" placeholder="Jaise: 123456789012" maxlength="12" required>
-              <p class="small-note">⚠️ UTR number dalna zaroori hai (minimum 4 characters)</p>
-            </div>
-            <button type="submit" class="btn-submit" id="submitBtn">✅ Submit Proof</button>
-          </form>
-        </div>
-      </section>
-
-      <!-- HISTORY -->
-      <section id="history-tab" class="tab-content">
-        <div class="card">
-          <h2>📖 Mera History</h2>
-          <div style="margin-bottom:10px;">
-            <button onclick="exportExcel()" class="btn-excel" style="padding:8px 16px; border:none; border-radius:8px; cursor:pointer; background:#10b981; color:white;">
-              📊 Excel Download (CSV)
-            </button>
-          </div>
-          <table>
-            <thead><tr><th>Month</th><th>Amount</th><th>UTR</th><th>Status</th></tr></thead>
-            <tbody id="historyTableBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
-          </table>
-        </div>
-      </section>
-
     </div>
+
+    <!-- NAV TABS -->
+    <div class="nav-tabs">
+      <button class="active" onclick="switchTab('queue-tab', this)">📋 Queue</button>
+      <button onclick="switchTab('pay-tab', this)">💳 Pay</button>
+      <button onclick="switchTab('history-tab', this)">📜 History</button>
+    </div>
+
+    <!-- QUEUE TAB -->
+    <section id="queue-tab" class="tab-content active">
+      <div class="tab-card">
+        <h3>📌 Rotation Queue <span style="font-size:0.7rem;color:#94a3b8;font-weight:normal;">(Current turn highlighted)</span></h3>
+        <table>
+          <thead><tr><th>#</th><th>Member</th><th>Status</th></tr></thead>
+          <tbody id="queueTableBody"><tr><td colspan="3" style="text-align:center;">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PAY TAB -->
+    <section id="pay-tab" class="tab-content">
+      <div class="tab-card">
+        <h3>💸 Payment Submit</h3>
+        <div class="bank-box">
+          <p><strong>UPI:</strong> <span id="dispUpi">---</span></p>
+          <p><strong>Account:</strong> <span id="dispAccName">---</span></p>
+          <p><strong>Acc No:</strong> <span id="dispAccNo">---</span></p>
+          <p><strong>IFSC:</strong> <span id="dispIfsc">---</span></p>
+        </div>
+        <form id="paymentForm">
+          <div class="form-group">
+            <label>₹ Amount <span style="color:#ef4444;">*</span></label>
+            <input type="number" id="amount" placeholder="Enter amount" min="1" required>
+            <p class="small-note">💡 Minimum ₹1</p>
+          </div>
+          <div class="form-group">
+            <label>UTR / Reference ID <span style="color:#ef4444;">*</span></label>
+            <input type="text" id="utr" placeholder="Jaise: 123456789012" maxlength="12" required>
+            <p class="small-note">⚠️ UTR number dalna zaroori hai</p>
+          </div>
+          <button type="submit" class="btn-submit" id="submitBtn">✅ Submit Proof</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- HISTORY TAB -->
+    <section id="history-tab" class="tab-content">
+      <div class="tab-card">
+        <h3>📖 Mera History</h3>
+        <div style="margin-bottom:10px;">
+          <button onclick="exportExcel()" style="padding:8px 16px; background:#10b981; color:white; border:none; border-radius:8px; cursor:pointer;">
+            📊 Excel Download
+          </button>
+        </div>
+        <table>
+          <thead><tr><th>Month</th><th>Amount</th><th>UTR</th><th>Status</th></tr></thead>
+          <tbody id="historyTableBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -501,15 +688,13 @@
     let currentCycle = 1;
     let currentMonthName = '';
 
-    // ====== TOAST FUNCTION ======
+    // ====== TOAST ======
     function showToast(message, type = 'success') {
       const toast = document.getElementById('toast');
       toast.textContent = message;
       toast.className = 'toast ' + type;
       toast.style.display = 'block';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 3000);
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
 
     // ====== DARK MODE ======
@@ -526,10 +711,11 @@
         localStorage.setItem('theme', 'dark');
       }
     };
-
     if (localStorage.getItem('theme') === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
-      document.querySelector('.dark-toggle').textContent = '☀️';
+      if (document.querySelector('.dark-toggle')) {
+        document.querySelector('.dark-toggle').textContent = '☀️';
+      }
     }
 
     // ====== PASSWORD TOGGLE ======
@@ -582,7 +768,6 @@
       if (user) {
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('appSection').style.display = 'block';
-        document.getElementById('userBar').style.display = 'flex';
 
         const userSnap = await get(child(ref(db), `users/${user.uid}`));
         if (userSnap.exists()) {
@@ -596,14 +781,12 @@
       } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('appSection').style.display = 'none';
-        document.getElementById('userBar').style.display = 'none';
         currentUserData = null;
       }
     });
 
     window.logoutUser = () => signOut(auth);
 
-    // ====== GET CURRENT MONTH ======
     function getCurrentMonth() {
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       const date = new Date();
@@ -615,9 +798,9 @@
         if (!snapshot.exists()) return;
         const data = snapshot.val();
 
-        currentCycle = data.currentCycle || 1;
         currentMonthName = getCurrentMonth();
-        document.getElementById('cycleDisplay').innerText = "Cycle: " + currentCycle;
+        currentCycle = data.currentCycle || 1;
+        document.getElementById('cycleDisplay').innerText = currentCycle;
 
         if (data.bankDetails) {
           document.getElementById('dispUpi').innerText = data.bankDetails.upi || '-';
@@ -626,24 +809,27 @@
           document.getElementById('dispIfsc').innerText = data.bankDetails.ifsc || '-';
         }
 
-        // ====== STATS ======
         const users = data.users || {};
-        document.getElementById('statTotalUsers').innerText = Object.keys(users).length;
-
         const donations = data.donations || {};
         const queue = data.queue || [];
-        
-        // ====== TOTAL COLLECTION (All months) ======
+
+        // ====== CYCLE STATUS ======
+        // Active cycles = current cycle (1)
+        // Completed cycles = currentCycle - 1
+        document.getElementById('activeCycleCount').innerText = 1;
+        document.getElementById('completedCycleCount').innerText = currentCycle > 1 ? currentCycle - 1 : 0;
+
+        // ====== TOTAL USERS ======
+        document.getElementById('statTotalUsers').innerText = Object.keys(users).length;
+
+        // ====== TOTAL COLLECTION ======
         let totalCollection = 0;
         Object.values(donations).forEach(item => {
-          if (item.status === 'Approved') {
-            totalCollection += Number(item.amount || 0);
-          }
+          if (item.status === 'Approved') totalCollection += Number(item.amount || 0);
         });
         document.getElementById('statTotalAmount').innerText = '₹' + totalCollection;
 
         // ====== THIS MONTH COLLECTION ======
-        // Sirf current month ke Approved payments count karo
         let thisMonthCollection = 0;
         Object.values(donations).forEach(item => {
           if (item.status === 'Approved' && item.month === currentMonthName) {
@@ -651,25 +837,29 @@
           }
         });
 
-        // ====== CHECK IF CURRENT TURN USER HAS RECEIVED ======
-        // Agar current turn wala user Received ho gaya, toh this month collection 0 ho jayegi
-        let activeTurnIndex = -1;
-        queue.forEach((member, idx) => {
-          if (activeTurnIndex === -1 && member.status === 'Pending') {
-            activeTurnIndex = idx;
-          }
+        // Check if current turn is received
+        let activeIdx = -1;
+        queue.forEach((m, i) => {
+          if (activeIdx === -1 && m.status === 'Pending') activeIdx = i;
         });
 
-        // Agar active turn wala member Received nahi hai toh collection dikhao, warna 0
-        if (activeTurnIndex !== -1 && queue[activeTurnIndex]?.status === 'Received') {
-          // Current turn wala Received ho gaya, toh collection 0
+        if (activeIdx !== -1 && queue[activeIdx]?.status === 'Received') {
           document.getElementById('statThisMonth').innerText = '₹0';
         } else {
-          // Current turn wala abhi pending hai, toh collection dikhao
           document.getElementById('statThisMonth').innerText = '₹' + thisMonthCollection;
         }
 
-        // Queue
+        // ====== PROGRESS ======
+        const totalMembers = queue.length || 1;
+        const paidMembers = queue.filter(m => m.status === 'Received').length;
+        const progressPercent = Math.round((paidMembers / totalMembers) * 100);
+        document.getElementById('progressPercent').innerText = progressPercent + '%';
+        document.getElementById('progressFill').style.width = progressPercent + '%';
+        document.getElementById('progressCollected').innerText = '₹' + (paidMembers * 10);
+        document.getElementById('progressTarget').innerText = '₹' + (totalMembers * 10);
+        document.getElementById('progressMembers').innerText = totalMembers;
+
+        // ====== QUEUE ======
         const queueTable = document.getElementById('queueTableBody');
         queueTable.innerHTML = "";
         let myIndex = -1;
@@ -677,23 +867,23 @@
         if (queue.length === 0) {
           queueTable.innerHTML = `<tr><td colspan="3" style="text-align:center;">⏳ Queue empty</td></tr>`;
         } else {
+          // Find active turn
+          let localActiveIdx = -1;
+          queue.forEach((m, i) => {
+            if (localActiveIdx === -1 && m.status === 'Pending') localActiveIdx = i;
+          });
+
           queue.forEach((member, idx) => {
             if (member.uid === currentUserData.uid || member.phone === currentUserData.phone) myIndex = idx;
             
-            // Recalculate activeTurnIndex for each render
-            let localActiveIndex = -1;
-            queue.forEach((m, i) => {
-              if (localActiveIndex === -1 && m.status === 'Pending') localActiveIndex = i;
-            });
-
-            const isCurrentTurn = (idx === localActiveIndex && member.status === 'Pending');
+            const isCurrentTurn = (idx === localActiveIdx && member.status === 'Pending');
             const isReceived = member.status === 'Received';
 
             let badgeHtml;
             if (isReceived) {
               badgeHtml = `<span class="badge badge-received">✅ Received</span>`;
             } else if (isCurrentTurn) {
-              badgeHtml = `<span class="badge badge-current">🎯 Current - ${member.name}</span>`;
+              badgeHtml = `<span class="badge badge-current">🎯 Current</span>`;
             } else {
               badgeHtml = `<span class="badge badge-pending">⏳ Pending</span>`;
             }
@@ -709,58 +899,51 @@
           });
         }
 
-        // Turn Status & WhatsApp/PDF Buttons
+        // ====== TURN STATUS ======
         const turnTitle = document.getElementById('myTurnStatus');
         const turnDetail = document.getElementById('myTurnDetail');
-        const whatsappContainer = document.getElementById('whatsappBtnContainer');
-        const pdfContainer = document.getElementById('pdfBtnContainer');
+        const turnActions = document.getElementById('turnActions');
         const whatsappLink = document.getElementById('whatsappLink');
 
-        // Find active turn
-        let activeIdx = -1;
+        let activeIdxFinal = -1;
         queue.forEach((m, i) => {
-          if (activeIdx === -1 && m.status === 'Pending') activeIdx = i;
+          if (activeIdxFinal === -1 && m.status === 'Pending') activeIdxFinal = i;
         });
 
         if (myIndex === -1) {
           turnTitle.innerText = "❌ Queue mein nahi hain";
           turnDetail.innerText = "Admin se request karein apna naam add karwane ke liye.";
           document.getElementById('statMyStatus').innerText = 'Not in Queue';
-          whatsappContainer.style.display = 'none';
-          pdfContainer.style.display = 'none';
+          turnActions.style.display = 'none';
           currentTurnData = null;
         } else {
           const myData = queue[myIndex];
           if (myData.status === 'Received') {
-            turnTitle.innerText = "✅ Aapka turn ho chuka hai!";
+            turnTitle.innerText = "✅ Turn Completed!";
             turnDetail.innerText = "Aapko is cycle ka amount mil gaya.";
             document.getElementById('statMyStatus').innerText = '✅ Received';
-            whatsappContainer.style.display = 'none';
-            pdfContainer.style.display = 'none';
+            turnActions.style.display = 'none';
             currentTurnData = null;
-          } else if (myIndex === activeIdx) {
+          } else if (myIndex === activeIdxFinal) {
             turnTitle.innerText = "🎯 Is mahine aapka turn hai!";
-            turnDetail.innerText = `Saare members ka contribution aapko milega. Cycle ${currentCycle} | Turn #${myIndex+1}`;
-            document.getElementById('statMyStatus').innerText = '🎯 Current Turn';
+            turnDetail.innerText = `Cycle ${currentCycle} | Turn #${myIndex+1} | Amount: ₹${totalMembers * 10}`;
+            document.getElementById('statMyStatus').innerText = '🎯 Current';
             currentTurnData = myData;
-            // WhatsApp
             const phone = myData.phone || '';
-            const msg = encodeURIComponent(`🙏 Namaste ${myData.name},\n\nAapka turn aa gaya hai! 🎯\nCycle: ${currentCycle}\nTurn: #${myIndex+1}\n\nKripya apna payment collect karein.\n\nTeam BC Committee`);
+            const msg = encodeURIComponent(`🙏 Namaste ${myData.name},\n\nAapka turn aa gaya hai! 🎯\nCycle: ${currentCycle}\nTurn: #${myIndex+1}\nAmount: ₹${totalMembers * 10}\n\nKripya apna payment collect karein.\n\nTeam BC Committee`);
             whatsappLink.href = `https://wa.me/${phone}?text=${msg}`;
-            whatsappContainer.style.display = 'block';
-            pdfContainer.style.display = 'block';
+            turnActions.style.display = 'flex';
           } else {
-            const monthsLeft = myIndex - activeIdx;
-            turnTitle.innerText = `📌 Aap #${myIndex+1} position par`;
+            const monthsLeft = myIndex - activeIdxFinal;
+            turnTitle.innerText = `📌 Position #${myIndex+1}`;
             turnDetail.innerText = `Lagbhag ${monthsLeft} mahine baad aapka turn aayega.`;
             document.getElementById('statMyStatus').innerText = `#${myIndex+1}`;
-            whatsappContainer.style.display = 'none';
-            pdfContainer.style.display = 'none';
+            turnActions.style.display = 'none';
             currentTurnData = null;
           }
         }
 
-        // History
+        // ====== HISTORY ======
         const historyTable = document.getElementById('historyTableBody');
         historyTable.innerHTML = "";
         myHistoryData = [];
@@ -784,12 +967,11 @@
       });
     }
 
-    // ====== PAYMENT SUBMIT - WITH VALIDATION ======
+    // ====== PAYMENT SUBMIT ======
     document.getElementById('paymentForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const submitBtn = document.getElementById('submitBtn');
-      
       const amount = document.getElementById('amount').value.trim();
       const utr = document.getElementById('utr').value.trim();
 
@@ -798,7 +980,6 @@
         document.getElementById('amount').focus();
         return;
       }
-
       if (!utr || utr.length < 4) {
         showToast("❌ Kripya UTR number daalein (minimum 4 characters)", "error");
         document.getElementById('utr').focus();
@@ -812,10 +993,6 @@
         const amountNum = Number(amount);
         const currentMonth = getCurrentMonth();
 
-        if (!currentUserData) {
-          throw new Error("User not logged in!");
-        }
-
         const newRef = push(ref(db, 'donations'));
         await set(newRef, {
           userId: currentUserData.uid,
@@ -828,23 +1005,20 @@
           timestamp: Date.now()
         });
 
-        showToast("✅ Payment proof submit ho gaya! Admin approve karega.", "success");
-        
+        showToast("✅ Payment proof submit ho gaya!", "success");
         document.getElementById('amount').value = '';
         document.getElementById('utr').value = '';
-        
         generatePaymentReceipt(currentUserData.name, amountNum, utr, currentMonth);
         
       } catch (err) {
-        showToast("❌ Error: " + err.message, "error");
-        console.error("Payment Error:", err);
+        showToast("❌ " + err.message, "error");
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = '✅ Submit Proof';
       }
     });
 
-    // ====== GENERATE PDF RECEIPT ======
+    // ====== PDF RECEIPT ======
     function generatePaymentReceipt(name, amount, utr, month) {
       const receiptHTML = `
         <div style="padding:30px; font-family:Arial; max-width:400px; margin:auto; border:2px solid #10b981; border-radius:10px; text-align:center;">
@@ -859,7 +1033,6 @@
           <p style="font-size:0.8rem; color:#64748b;">✅ Payment Submitted!<br>Waiting for admin approval.</p>
         </div>
       `;
-
       const win = window.open('', '_blank');
       win.document.write(`
         <html>
@@ -879,7 +1052,6 @@
       win.document.close();
     }
 
-    // ====== PDF GENERATE (From Turn Box) ======
     window.generatePDF = function() {
       if (!currentTurnData) return showToast("❌ Koi active turn nahi hai.", "error");
       generatePaymentReceipt(
@@ -893,12 +1065,10 @@
     // ====== EXCEL EXPORT ======
     window.exportExcel = function() {
       if (myHistoryData.length === 0) return showToast("❌ Koi history nahi hai!", "error");
-
       let csv = "Month,Amount,UTR,Status\n";
       myHistoryData.forEach(item => {
         csv += `"${item.month}",${item.amount},"${item.utr || 'N/A'}","${item.status}"\n`;
       });
-
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -911,7 +1081,7 @@
 
     window.switchTab = function(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
     };
