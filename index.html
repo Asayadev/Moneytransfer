@@ -196,6 +196,11 @@
       background: var(--input-bg);
       color: var(--text);
     }
+    input:focus {
+      outline: 2px solid #10b981;
+      outline-offset: 1px;
+      border-color: transparent;
+    }
     .password-toggle {
       position: absolute;
       right: 12px;
@@ -258,7 +263,7 @@
 
     .stats-mini {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 15px;
     }
@@ -268,8 +273,8 @@
       border-radius: 8px;
       text-align: center;
     }
-    .stats-mini .stat-item .num { font-size: 1.3rem; font-weight: 700; color: #059669; }
-    .stats-mini .stat-item .lbl { font-size: 0.7rem; color: #64748b; }
+    .stats-mini .stat-item .num { font-size: 1.2rem; font-weight: 700; color: #059669; }
+    .stats-mini .stat-item .lbl { font-size: 0.65rem; color: #64748b; }
 
     .btn-group {
       display: flex;
@@ -307,14 +312,18 @@
       z-index: 9999;
       display: none;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      max-width: 90%;
+      text-align: center;
     }
     .toast.success { background: #059669; }
     .toast.error { background: #ef4444; }
 
+    @media (max-width: 600px) {
+      .stats-mini { grid-template-columns: repeat(2, 1fr); }
+    }
     @media (max-width: 480px) {
       header h1 { font-size: 1.3rem; }
       .user-bar { flex-wrap: wrap; gap: 6px; }
-      .stats-mini { grid-template-columns: 1fr 1fr; }
       .dark-toggle { position: relative; top: auto; right: auto; margin-top: 8px; }
       header { display: flex; flex-direction: column; align-items: center; }
     }
@@ -367,7 +376,7 @@
     <!-- MAIN APP -->
     <div id="appSection" style="display:none;">
 
-      <!-- Mini Stats -->
+      <!-- Mini Stats - 4 Columns -->
       <div class="stats-mini" id="userStats">
         <div class="stat-item">
           <div class="num" id="statTotalUsers">0</div>
@@ -376,6 +385,10 @@
         <div class="stat-item">
           <div class="num" id="statTotalAmount">₹0</div>
           <div class="lbl">💰 Total Collection</div>
+        </div>
+        <div class="stat-item">
+          <div class="num" id="statThisMonth">₹0</div>
+          <div class="lbl">📆 This Month</div>
         </div>
         <div class="stat-item">
           <div class="num" id="statMyStatus">-</div>
@@ -428,13 +441,14 @@
 
           <form id="paymentForm">
             <div class="form-group">
-              <label>₹ Amount</label>
-              <input type="number" id="amount" value="10" min="10" readonly>
+              <label>₹ Amount <span style="color:#ef4444;">*</span></label>
+              <input type="number" id="amount" placeholder="Enter amount" min="1" required>
+              <p class="small-note">💡 Aap kitna bhi amount daal sakte hain (minimum ₹1)</p>
             </div>
             <div class="form-group">
-              <label>UTR / Reference ID</label>
-              <input type="text" id="utr" placeholder="Jaise: 123456789012" maxlength="12">
-              <p class="small-note">⚠️ Agar UTR nahi hai toh kuch bhi daal sakte hain</p>
+              <label>UTR / Reference ID <span style="color:#ef4444;">*</span></label>
+              <input type="text" id="utr" placeholder="Jaise: 123456789012" maxlength="12" required>
+              <p class="small-note">⚠️ UTR number dalna zaroori hai (minimum 4 characters)</p>
             </div>
             <button type="submit" class="btn-submit" id="submitBtn">✅ Submit Proof</button>
           </form>
@@ -485,6 +499,7 @@
     let myHistoryData = [];
     let currentTurnData = null;
     let currentCycle = 1;
+    let currentMonthName = '';
 
     // ====== TOAST FUNCTION ======
     function showToast(message, type = 'success') {
@@ -588,12 +603,20 @@
 
     window.logoutUser = () => signOut(auth);
 
+    // ====== GET CURRENT MONTH ======
+    function getCurrentMonth() {
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const date = new Date();
+      return monthNames[date.getMonth()] + " " + date.getFullYear();
+    }
+
     function listenToSystemData() {
       onValue(ref(db), (snapshot) => {
         if (!snapshot.exists()) return;
         const data = snapshot.val();
 
         currentCycle = data.currentCycle || 1;
+        currentMonthName = getCurrentMonth();
         document.getElementById('cycleDisplay').innerText = "Cycle: " + currentCycle;
 
         if (data.bankDetails) {
@@ -603,32 +626,67 @@
           document.getElementById('dispIfsc').innerText = data.bankDetails.ifsc || '-';
         }
 
-        // Stats
+        // ====== STATS ======
         const users = data.users || {};
         document.getElementById('statTotalUsers').innerText = Object.keys(users).length;
 
         const donations = data.donations || {};
-        let totalAmount = 0;
+        const queue = data.queue || [];
+        
+        // ====== TOTAL COLLECTION (All months) ======
+        let totalCollection = 0;
         Object.values(donations).forEach(item => {
-          if (item.status === 'Approved') totalAmount += Number(item.amount || 0);
+          if (item.status === 'Approved') {
+            totalCollection += Number(item.amount || 0);
+          }
         });
-        document.getElementById('statTotalAmount').innerText = '₹' + totalAmount;
+        document.getElementById('statTotalAmount').innerText = '₹' + totalCollection;
+
+        // ====== THIS MONTH COLLECTION ======
+        // Sirf current month ke Approved payments count karo
+        let thisMonthCollection = 0;
+        Object.values(donations).forEach(item => {
+          if (item.status === 'Approved' && item.month === currentMonthName) {
+            thisMonthCollection += Number(item.amount || 0);
+          }
+        });
+
+        // ====== CHECK IF CURRENT TURN USER HAS RECEIVED ======
+        // Agar current turn wala user Received ho gaya, toh this month collection 0 ho jayegi
+        let activeTurnIndex = -1;
+        queue.forEach((member, idx) => {
+          if (activeTurnIndex === -1 && member.status === 'Pending') {
+            activeTurnIndex = idx;
+          }
+        });
+
+        // Agar active turn wala member Received nahi hai toh collection dikhao, warna 0
+        if (activeTurnIndex !== -1 && queue[activeTurnIndex]?.status === 'Received') {
+          // Current turn wala Received ho gaya, toh collection 0
+          document.getElementById('statThisMonth').innerText = '₹0';
+        } else {
+          // Current turn wala abhi pending hai, toh collection dikhao
+          document.getElementById('statThisMonth').innerText = '₹' + thisMonthCollection;
+        }
 
         // Queue
-        const queue = data.queue || [];
         const queueTable = document.getElementById('queueTableBody');
         queueTable.innerHTML = "";
         let myIndex = -1;
-        let activeTurnIndex = -1;
 
         if (queue.length === 0) {
           queueTable.innerHTML = `<tr><td colspan="3" style="text-align:center;">⏳ Queue empty</td></tr>`;
         } else {
           queue.forEach((member, idx) => {
             if (member.uid === currentUserData.uid || member.phone === currentUserData.phone) myIndex = idx;
-            if (activeTurnIndex === -1 && member.status === 'Pending') activeTurnIndex = idx;
+            
+            // Recalculate activeTurnIndex for each render
+            let localActiveIndex = -1;
+            queue.forEach((m, i) => {
+              if (localActiveIndex === -1 && m.status === 'Pending') localActiveIndex = i;
+            });
 
-            const isCurrentTurn = (idx === activeTurnIndex && member.status === 'Pending');
+            const isCurrentTurn = (idx === localActiveIndex && member.status === 'Pending');
             const isReceived = member.status === 'Received';
 
             let badgeHtml;
@@ -658,6 +716,12 @@
         const pdfContainer = document.getElementById('pdfBtnContainer');
         const whatsappLink = document.getElementById('whatsappLink');
 
+        // Find active turn
+        let activeIdx = -1;
+        queue.forEach((m, i) => {
+          if (activeIdx === -1 && m.status === 'Pending') activeIdx = i;
+        });
+
         if (myIndex === -1) {
           turnTitle.innerText = "❌ Queue mein nahi hain";
           turnDetail.innerText = "Admin se request karein apna naam add karwane ke liye.";
@@ -674,7 +738,7 @@
             whatsappContainer.style.display = 'none';
             pdfContainer.style.display = 'none';
             currentTurnData = null;
-          } else if (myIndex === activeTurnIndex) {
+          } else if (myIndex === activeIdx) {
             turnTitle.innerText = "🎯 Is mahine aapka turn hai!";
             turnDetail.innerText = `Saare members ka contribution aapko milega. Cycle ${currentCycle} | Turn #${myIndex+1}`;
             document.getElementById('statMyStatus').innerText = '🎯 Current Turn';
@@ -686,7 +750,7 @@
             whatsappContainer.style.display = 'block';
             pdfContainer.style.display = 'block';
           } else {
-            const monthsLeft = myIndex - activeTurnIndex;
+            const monthsLeft = myIndex - activeIdx;
             turnTitle.innerText = `📌 Aap #${myIndex+1} position par`;
             turnDetail.innerText = `Lagbhag ${monthsLeft} mahine baad aapka turn aayega.`;
             document.getElementById('statMyStatus').innerText = `#${myIndex+1}`;
@@ -720,20 +784,33 @@
       });
     }
 
-    // ====== PAYMENT SUBMIT - FIXED ======
+    // ====== PAYMENT SUBMIT - WITH VALIDATION ======
     document.getElementById('paymentForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       
       const submitBtn = document.getElementById('submitBtn');
+      
+      const amount = document.getElementById('amount').value.trim();
+      const utr = document.getElementById('utr').value.trim();
+
+      if (!amount || isNaN(amount) || Number(amount) < 1) {
+        showToast("❌ Kripya sahi amount daalein (minimum ₹1)", "error");
+        document.getElementById('amount').focus();
+        return;
+      }
+
+      if (!utr || utr.length < 4) {
+        showToast("❌ Kripya UTR number daalein (minimum 4 characters)", "error");
+        document.getElementById('utr').focus();
+        return;
+      }
+
       submitBtn.disabled = true;
       submitBtn.textContent = '⏳ Submitting...';
 
       try {
-        const amount = Number(document.getElementById('amount').value) || 10;
-        const utr = document.getElementById('utr').value.trim() || 'N/A';
-        const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-        const date = new Date();
-        const currentMonth = monthNames[date.getMonth()] + " " + date.getFullYear();
+        const amountNum = Number(amount);
+        const currentMonth = getCurrentMonth();
 
         if (!currentUserData) {
           throw new Error("User not logged in!");
@@ -744,7 +821,7 @@
           userId: currentUserData.uid,
           userName: currentUserData.name || 'User',
           userPhone: currentUserData.phone || '',
-          amount: amount,
+          amount: amountNum,
           utr: utr,
           month: currentMonth,
           status: "Pending",
@@ -752,10 +829,11 @@
         });
 
         showToast("✅ Payment proof submit ho gaya! Admin approve karega.", "success");
+        
+        document.getElementById('amount').value = '';
         document.getElementById('utr').value = '';
         
-        // Generate PDF receipt
-        generatePaymentReceipt(currentUserData.name, amount, utr, currentMonth);
+        generatePaymentReceipt(currentUserData.name, amountNum, utr, currentMonth);
         
       } catch (err) {
         showToast("❌ Error: " + err.message, "error");
