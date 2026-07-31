@@ -401,8 +401,8 @@
         <div style="margin-top:20px;">
           <div style="font-size:0.95rem;font-weight:700;margin-bottom:8px;">📜 Is Month Ki Boli List</div>
           <table>
-            <thead><tr><th>Member</th><th>Discount</th><th>Payout</th></tr></thead>
-            <tbody id="auctionTableBody"><tr><td colspan="3" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
+            <thead><tr><th>Member</th><th>Discount</th><th>Payout</th><th>Status</th></tr></thead>
+            <tbody id="auctionTableBody"><tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -606,9 +606,14 @@
       document.getElementById('donutActiveVal').innerText = active.length;
       renderDonutChart(active.length, completed.length);
 
-      // Total Monthly Pot = sum of (monthlyAmount * totalMembers) for active cycles
-      const totalPot = active.reduce((s, c) =>
-        s + (Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0)), 0);
+      // Total Monthly Pot = sum of collected (approved payments) across all active cycles for current month
+      const currentMonth = getCurrentMonth();
+      let totalPot = 0;
+      active.forEach(c => {
+        const payments = c.payments || {};
+        Object.values(payments).filter(p => p.status === 'Approved' && p.month === currentMonth)
+          .forEach(p => { totalPot += Number(p.amount || 0); });
+      });
       document.getElementById('totalMonthlyPot').innerText = fmtINR(totalPot);
 
       // Collection Progress
@@ -772,6 +777,18 @@
       document.getElementById('cdPaymentsList').style.display = tab === 'payments' ? 'block' : 'none';
     };
 
+    // ============ CHECK IF ALL MEMBERS PAID ============
+    function hasAllMembersPaid(cycle) {
+      const totalMembers = Number(cycle.totalMembers || 0);
+      if (totalMembers === 0) return true;
+      const payments = cycle.payments || {};
+      const currentMonth = getCurrentMonth();
+      const approvedThisMonth = Object.values(payments).filter(p =>
+        p.status === 'Approved' && p.month === currentMonth
+      ).length;
+      return approvedThisMonth >= totalMembers;
+    }
+
     // ============ PAYMENT ============
     function renderPaymentCycleSelect() {
       const sel = document.getElementById('paymentCycleSelect');
@@ -786,10 +803,32 @@
       document.getElementById('dispAccNo').innerText = bd.accNo || '-';
       document.getElementById('dispIfsc').innerText = bd.ifsc || '-';
 
-      // Auto-fill amount when cycle selected
+      // Auto-fill amount and check if all members paid
       sel.onchange = () => {
         const c = allData.cycles[sel.value];
-        if (c) document.getElementById('amount').value = c.monthlyAmount || '';
+        const submitBtn = document.getElementById('submitPayBtn');
+        if (c) {
+          document.getElementById('amount').value = c.monthlyAmount || '';
+          if (hasAllMembersPaid(c)) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = '✅ All Members Paid This Month';
+            submitBtn.style.background = '#16A34A';
+            document.getElementById('amount').disabled = true;
+            document.getElementById('utr').disabled = true;
+          } else {
+            submitBtn.disabled = false;
+            submitBtn.innerText = '✅ Submit Proof';
+            submitBtn.style.background = '';
+            document.getElementById('amount').disabled = false;
+            document.getElementById('utr').disabled = false;
+          }
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.innerText = '✅ Submit Proof';
+          submitBtn.style.background = '';
+          document.getElementById('amount').disabled = false;
+          document.getElementById('utr').disabled = false;
+        }
       };
     }
 
@@ -868,7 +907,7 @@
       const detEl = document.getElementById('highestBidderDetails');
 
       if (!cycleId) {
-        table.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#9B9B9B;">Cycle select karein</td></tr>`;
+        table.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Cycle select karein</td></tr>`;
         nameEl.innerText = 'Koi cycle select nahi hai';
         detEl.innerText = '-';
         return;
@@ -885,7 +924,7 @@
       if (bids.length === 0) {
         nameEl.innerText = 'Abhi tak koi boli nahi lagi';
         detEl.innerText = `Discount: ₹0 | Pot: ${fmtINR(totalPot)}`;
-        table.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#9B9B9B;">🔨 Is mahine koi boli nahi lagi</td></tr>`;
+        table.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;">🔨 Is mahine koi boli nahi lagi</td></tr>`;
       } else {
         const top = bids[0];
         const payout = Math.max(0, totalPot - Number(top.discountAmount || 0));
@@ -893,7 +932,13 @@
         detEl.innerText = `Discount: ${fmtINR(top.discountAmount)} | Payout: ${fmtINR(payout)}`;
         table.innerHTML = bids.map(b => {
           const p = Math.max(0, totalPot - Number(b.discountAmount || 0));
-          return `<tr><td>${b.userName || 'Unknown'}</td><td><strong style="color:#F5A623;">${fmtINR(b.discountAmount)}</strong></td><td>${fmtINR(p)}</td></tr>`;
+          const bidStatus = b.status || 'Active';
+          let statusCls = '';
+          let statusLabel = bidStatus;
+          if (bidStatus === 'Approved') { statusCls = 'color:#16A34A;font-weight:700;'; statusLabel = '✅ Approved'; }
+          else if (bidStatus === 'Rejected') { statusCls = 'color:#EF4444;font-weight:700;'; statusLabel = '❌ Rejected'; }
+          else { statusCls = 'color:#F5A623;font-weight:600;'; statusLabel = '⏳ Pending'; }
+          return `<tr><td>${b.userName || 'Unknown'}</td><td><strong style="color:#F5A623;">${fmtINR(b.discountAmount)}</strong></td><td>${fmtINR(p)}</td><td style="${statusCls}font-size:0.75rem;">${statusLabel}</td></tr>`;
         }).join('');
       }
     };
@@ -980,6 +1025,8 @@
       }
     }, 500);
   </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"3279d41ec7804124a29acc6e692f9a2b"}' crossorigin="anonymous"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"3279d41ec7804124a29acc6e692f9a2b"}' crossorigin="anonymous"></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"3279d41ec7804124a29acc6e692f9a2b"}' crossorigin="anonymous"></script>
 </body>
 </html>
