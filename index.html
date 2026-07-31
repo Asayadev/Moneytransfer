@@ -623,19 +623,26 @@
         listEl.innerHTML = `<div class="card"><div class="empty"><div class="emoji">🐷</div><div class="text">Koi cycle nahi hai</div><div class="hint">Admin se naya cycle banwane ko kahein</div></div></div>`;
         return;
       }
-      cycles.forEach(c => {
+      // Collection Progress - sort: Active first, then Completed
+      const sortedCycles = [...active, ...completed];
+      sortedCycles.forEach(c => {
+        const isCompleted = (c.status === 'Completed');
         const target = (Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0)) * Number(c.durationMonths || 1);
         const collected = calcCycleCollection(c);
         const monthlyTarget = (Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0));
-        const pct = monthlyTarget > 0 ? Math.min(100, Math.round((collected / monthlyTarget) * 100)) : 0;
+        // Completed cycles show 0% progress (reset like new)
+        const pct = isCompleted ? 0 : (monthlyTarget > 0 ? Math.min(100, Math.round((collected / monthlyTarget) * 100)) : 0);
+        const cardStyle = isCompleted ? 'opacity:0.55;border:1px solid #D1D5DB;' : '';
+        const fillColor = isCompleted ? '#D1D5DB' : '#5B54D6';
+        const statusTag = isCompleted ? '<span style="background:rgba(59,130,246,0.12);color:#1E40AF;font-size:0.65rem;padding:2px 8px;border-radius:6px;font-weight:700;margin-left:6px;">Completed</span>' : '';
         const html = `
-          <div class="cycle-card" onclick="openCycleDetail('${c.id}')">
+          <div class="cycle-card" onclick="openCycleDetail('${c.id}')" style="${cardStyle}">
             <div class="row1">
-              <div class="amount">${(monthlyTarget).toLocaleString('en-IN')}</div>
-              <div class="pct">${pct}%</div>
+              <div class="amount">${(monthlyTarget).toLocaleString('en-IN')}${statusTag}</div>
+              <div class="pct" style="color:${isCompleted ? '#9B9B9B' : '#5B54D6'};">${pct}%</div>
             </div>
             <div class="meta">${fmtINR(c.monthlyAmount)} / Member • ${c.totalMembers} Members</div>
-            <div class="bar"><div class="fill" style="width:${pct}%;"></div></div>
+            <div class="bar"><div class="fill" style="width:${pct}%;background:${fillColor};"></div></div>
             <div class="row3">
               <span class="collected">Collected: ${fmtINR(collected)}</span>
               <span class="target">Target: ${fmtINR(target)}</span>
