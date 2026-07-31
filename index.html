@@ -946,11 +946,24 @@
     // ============ AUCTION / BOLI ============
     function renderAuctionCycleSelect() {
       const sel = document.getElementById('auctionCycleSelect');
-      const cycles = getCyclesArray().filter(c => (c.status || 'Active') === 'Active');
+      const uid = currentUserData?.uid;
+      // Only Active cycles where:
+      // 1. Cycle is Active (not Completed)
+      // 2. User has NOT already placed a bid in this cycle (ever)
+      // 3. Current batch is complete (all members paid)
+      const cycles = getCyclesArray().filter(c => {
+        if ((c.status || 'Active') !== 'Active') return false;
+        // Has this user already placed a bid in this cycle?
+        const userHasBid = Object.values(allData.bids || {}).some(b =>
+          b.cycleId === c.id && b.userId === uid
+        );
+        if (userHasBid) return false; // User already bid → hide
+        return true;
+      });
       const currentVal = sel.value;
       sel.innerHTML = cycles.length === 0
-        ? '<option value="">-- Koi active cycle nahi --</option>'
-        : cycles.map(c => `<option value="${c.id}">${c.name || 'Cycle'} • ${fmtINR(c.monthlyAmount)}/month</option>`).join('');
+        ? '<option value="">-- Boli ke liye koi cycle nahi --</option>'
+        : '<option value="">-- Select Cycle --</option>' + cycles.map(c => `<option value="${c.id}">${c.name || 'Cycle'} • ${fmtINR(c.monthlyAmount)}/month</option>`).join('');
       if (currentVal && cycles.find(c => c.id === currentVal)) sel.value = currentVal;
     }
 
@@ -1015,31 +1028,20 @@
       const info = hasAllMembersPaid(cycle);
       const batchJustComplete = (info.currentCount === 0 && info.batchesCompleted > 0);
 
-      // Check 2: Does user have a PENDING bid?
+      // Check 2: Does user have a PENDING bid in the CURRENT batch?
+      // Only block if user's LATEST bid is pending (not from previous batch)
       const uid = currentUserData?.uid;
-      const currentMonth = getCurrentMonth();
-      const userHasPendingBid = Object.values(allData.bids || {}).some(b =>
-        b.cycleId === cycleId && b.userId === uid && b.month === currentMonth && (!b.status || b.status === 'Active')
-      );
+      const allUserBids = Object.values(allData.bids || {}).filter(b => b.cycleId === cycleId && b.userId === uid);
+      allUserBids.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      const latestBid = allUserBids[0];
+      const userHasPendingBid = latestBid && (!latestBid.status || latestBid.status === 'Active');
 
-      if (userHasPendingBid && !batchJustComplete) {
+      if (userHasPendingBid) {
         submitBtn.disabled = true;
         submitBtn.innerText = '⏳ Aapki Boli Pending Hai';
         submitBtn.style.background = '#F5A623';
         discountInput.disabled = true;
-        discountInput.placeholder = 'Pehle wali boli ka result wait karein...';
-        document.getElementById('payoutPreview').style.display = 'none';
-        document.getElementById('payoutWarning').style.display = 'none';
-        return 'pending';
-      }
-
-      if (userHasPendingBid && batchJustComplete) {
-        // Batch complete + user has pending bid — still block (admin needs to approve first)
-        submitBtn.disabled = true;
-        submitBtn.innerText = '⏳ Admin Approval Ka Wait Karein';
-        submitBtn.style.background = '#F5A623';
-        discountInput.disabled = true;
-        discountInput.placeholder = 'Admin se approval ka wait karein...';
+        discountInput.placeholder = 'Admin approval ka wait karein...';
         document.getElementById('payoutPreview').style.display = 'none';
         document.getElementById('payoutWarning').style.display = 'none';
         return 'pending';
