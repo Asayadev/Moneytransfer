@@ -428,9 +428,21 @@
         <div style="margin-bottom:10px;">
           <button class="btn-outline" onclick="exportExcel()">📊 Excel Download</button>
         </div>
+      </div>
+
+      <div class="section-h">🔨 Boli History</div>
+      <div class="card">
         <table>
-          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Type</th><th>Status</th></tr></thead>
-          <tbody id="historyTableBody"><tr><td colspan="5" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
+          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="bidHistoryTableBody"><tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="section-h">💰 Payment History</div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="paymentHistoryTableBody"><tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -755,6 +767,9 @@
       const memberArr = Object.entries(members).map(([uid, m]) => ({ uid, ...m }))
                         .sort((a, b) => (a.position || 0) - (b.position || 0));
 
+      const currentMonth = getCurrentMonth();
+      const cyclePayments = Object.values(c.payments || {});
+
       if (memberArr.length === 0) {
         membersEl.innerHTML = `<div class="empty"><div class="emoji">👥</div><div class="text">Abhi koi member nahi hai</div><div class="hint">Register karke members ko cycle mein add karein</div></div>`;
       } else {
@@ -762,6 +777,16 @@
           const status = m.turnStatus || 'Pending';
           const cls = status === 'Received' ? 'received' : status === 'Current' ? 'current' : 'pending';
           const rowCls = status === 'Current' ? 'current' : '';
+
+          // Is batch/month ka payment status is member ke liye
+          const myPayment = cyclePayments.find(p =>
+            p.month === currentMonth && (p.userId === m.uid || p.userPhone === m.phone)
+          );
+          let batchLbl, batchCls;
+          if (myPayment && myPayment.status === 'Approved') { batchLbl = '✅ Paid'; batchCls = 'received'; }
+          else if (myPayment) { batchLbl = '⏳ Pending Review'; batchCls = 'pending'; }
+          else { batchLbl = '❌ Not Paid'; batchCls = 'pending'; }
+
           return `
             <div class="member-row ${rowCls}">
               <div class="member-pos">#${m.position || '?'}</div>
@@ -769,7 +794,10 @@
                 <div class="member-name">${m.name || 'Unknown'} ${status === 'Current' ? '👑' : ''}</div>
                 <div class="member-phone">${m.phone || '-'}</div>
               </div>
-              <span class="turn-badge ${cls}">${status}</span>
+              <div style="text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
+                <span class="turn-badge ${cls}">${status}</span>
+                <span class="turn-badge ${batchCls}" style="font-size:0.6rem;">${batchLbl}</span>
+              </div>
             </div>
           `;
         }).join('');
@@ -829,8 +857,56 @@
     }
 
     // ============ PAYMENT ============
+    // Applies lock/unlock UI state for whichever cycle is currently selected.
+    // Called both on manual dropdown change AND every time the select is (re)rendered,
+    // so realtime data refreshes never silently re-enable an already-submitted form.
+    function updatePaymentFormState(showToastOnLock) {
+      const sel = document.getElementById('paymentCycleSelect');
+      const c = allData.cycles[sel.value];
+      const submitBtn = document.getElementById('submitPayBtn');
+      const amountEl = document.getElementById('amount');
+      const utrEl = document.getElementById('utr');
+
+      if (c) {
+        // Only auto-fill amount if the user hasn't already typed something for this cycle
+        if (!amountEl.dataset.userEdited) amountEl.value = c.monthlyAmount || '';
+        const info = hasAllMembersPaid(c);
+        const isFull = info.currentCount === 0 && info.batchesCompleted > 0;
+        const alreadyPaid = hasUserPaidThisBatch(c);
+        if (alreadyPaid) {
+          submitBtn.disabled = true;
+          submitBtn.innerText = '✅ Is Batch Mein Already Submit Kar Chuke Ho';
+          submitBtn.style.background = '#9B9B9B';
+          amountEl.disabled = true;
+          utrEl.disabled = true;
+          if (showToastOnLock) showToast('❌ Aap is batch mein pehle hi payment proof submit kar chuke ho!', 'error');
+        } else if (isFull) {
+          submitBtn.disabled = true;
+          submitBtn.innerText = '🔒 Batch Full — Payments Closed';
+          submitBtn.style.background = '#9B9B9B';
+          amountEl.disabled = true;
+          utrEl.disabled = true;
+          if (showToastOnLock) showToast('❌ Is cycle ka batch (' + info.totalMembers + ' members) pura ho chuka hai. Payment band hai.', 'error');
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.innerText = '✅ Submit Proof';
+          submitBtn.style.background = '';
+          amountEl.disabled = false;
+          utrEl.disabled = false;
+        }
+      } else {
+        submitBtn.disabled = false;
+        submitBtn.innerText = '✅ Submit Proof';
+        submitBtn.style.background = '';
+        amountEl.disabled = false;
+        utrEl.disabled = false;
+      }
+    }
+    window.updatePaymentFormState = updatePaymentFormState;
+
     function renderPaymentCycleSelect() {
       const sel = document.getElementById('paymentCycleSelect');
+      const previouslySelected = sel.value; // preserve selection across realtime rebuilds
       const cycles = getCyclesArray().filter(c => (c.status || 'Active') === 'Active');
       sel.innerHTML = '<option value="">-- Select Cycle --</option>' +
         cycles.map(c => {
@@ -842,6 +918,11 @@
           return `<option value="${c.id}" ${isFull ? 'disabled' : ''}>${label}</option>`;
         }).join('');
 
+      // Restore whatever cycle was selected before this rebuild (if it still exists)
+      if (previouslySelected && [...sel.options].some(o => o.value === previouslySelected)) {
+        sel.value = previouslySelected;
+      }
+
       // Bank details
       const bd = allData.bankDetails || {};
       document.getElementById('dispUpi').innerText = bd.upi || '-';
@@ -849,37 +930,29 @@
       document.getElementById('dispAccNo').innerText = bd.accNo || '-';
       document.getElementById('dispIfsc').innerText = bd.ifsc || '-';
 
-      // Auto-fill amount; block if this cycle's current batch is already full
+      // Re-apply lock state immediately for whatever is currently selected —
+      // covers initial render AND every realtime data refresh, not just manual onchange.
+      updatePaymentFormState(false);
+
       sel.onchange = () => {
-        const c = allData.cycles[sel.value];
-        const submitBtn = document.getElementById('submitPayBtn');
-        if (c) {
-          document.getElementById('amount').value = c.monthlyAmount || '';
-          const info = hasAllMembersPaid(c);
-          const isFull = info.currentCount === 0 && info.batchesCompleted > 0;
-          if (isFull) {
-            submitBtn.disabled = true;
-            submitBtn.innerText = '🔒 Batch Full — Payments Closed';
-            submitBtn.style.background = '#9B9B9B';
-            document.getElementById('amount').disabled = true;
-            document.getElementById('utr').disabled = true;
-            showToast('❌ Is cycle ka batch (' + info.totalMembers + ' members) pura ho chuka hai. Payment band hai.', 'error');
-          } else {
-            submitBtn.disabled = false;
-            submitBtn.innerText = '✅ Submit Proof';
-            submitBtn.style.background = '';
-            document.getElementById('amount').disabled = false;
-            document.getElementById('utr').disabled = false;
-          }
-        } else {
-          submitBtn.disabled = false;
-          submitBtn.innerText = '✅ Submit Proof';
-          submitBtn.style.background = '';
-          document.getElementById('amount').disabled = false;
-          document.getElementById('utr').disabled = false;
-        }
+        document.getElementById('amount').dataset.userEdited = ''; // reset auto-fill guard on cycle switch
+        updatePaymentFormState(true);
       };
     }
+
+    // Kya current user ne is cycle ke current batch/month ke liye already payment proof submit kar diya hai
+    function hasUserPaidThisBatch(cycle) {
+      const currentMonth = getCurrentMonth();
+      const payments = Object.values(cycle.payments || {});
+      return payments.some(p =>
+        p.month === currentMonth &&
+        (p.userId === currentUserData.uid || (currentUserData.phone && p.userPhone === currentUserData.phone))
+      );
+    }
+
+    document.getElementById('amount').addEventListener('input', function() {
+      this.dataset.userEdited = '1';
+    });
 
     document.getElementById('paymentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -900,6 +973,13 @@
           renderPaymentCycleSelect();
           return showToast('❌ Is cycle ka batch pura ho chuka hai. Payment band hai.', 'error');
         }
+        // Safety check: user is is batch ke liye already submit kar chuka ho sakta hai
+        if (hasUserPaidThisBatch(selectedCycle)) {
+          btn.disabled = true;
+          btn.innerText = '✅ Is Batch Mein Already Submit Kar Chuke Ho';
+          btn.style.background = '#9B9B9B';
+          return showToast('❌ Aap is batch mein pehle hi payment proof submit kar chuke ho!', 'error');
+        }
       }
 
       btn.disabled = true;
@@ -919,11 +999,17 @@
         });
         showToast('✅ Payment proof submit ho gaya!', 'success');
         document.getElementById('amount').value = '';
+        document.getElementById('amount').dataset.userEdited = '';
         document.getElementById('utr').value = '';
         generateReceipt(currentUserData.name || 'User', amount, utr, getCurrentMonth(), allData.cycles[cycleId]?.name || 'Cycle');
+        // Submit hone ke baad is batch ke liye button disable hi rakho — dobara submit na ho sake
+        btn.disabled = true;
+        btn.innerText = '✅ Is Batch Mein Already Submit Kar Chuke Ho';
+        btn.style.background = '#9B9B9B';
+        document.getElementById('amount').disabled = true;
+        document.getElementById('utr').disabled = true;
       } catch (err) {
         showToast('❌ ' + err.message, 'error');
-      } finally {
         btn.disabled = false;
         btn.innerText = '✅ Submit Proof';
       }
@@ -1155,15 +1241,18 @@
 
     // ============ HISTORY ============
     function renderHistory() {
-      const table = document.getElementById('historyTableBody');
-      myHistoryData = [];
+      const bidTable = document.getElementById('bidHistoryTableBody');
+      const paymentTable = document.getElementById('paymentHistoryTableBody');
       const cycles = getCyclesArray();
+
+      const myPayments = [];
+      const myBids = [];
 
       // Payments made by this user
       cycles.forEach(c => {
         Object.entries(c.payments || {}).forEach(([pid, p]) => {
           if (p.userId === currentUserData.uid || p.userPhone === currentUserData.phone) {
-            myHistoryData.push({ ...p, cycleName: c.name, recordType: 'payment' });
+            myPayments.push({ ...p, cycleName: c.name, recordType: 'payment' });
           }
         });
       });
@@ -1172,7 +1261,7 @@
       Object.values(allData.bids || {}).forEach(b => {
         if (b.userId === currentUserData.uid || b.userPhone === currentUserData.phone) {
           const cycle = allData.cycles[b.cycleId];
-          myHistoryData.push({
+          myBids.push({
             cycleName: cycle ? cycle.name : '-',
             month: b.month,
             amount: b.discountAmount,
@@ -1183,19 +1272,30 @@
         }
       });
 
-      myHistoryData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      myPayments.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      myBids.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-      if (myHistoryData.length === 0) {
-        table.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi record nahi</td></tr>`;
-        return;
+      myHistoryData = [...myBids, ...myPayments];
+
+      // Render Boli table
+      if (myBids.length === 0) {
+        bidTable.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi boli nahi</td></tr>`;
+      } else {
+        bidTable.innerHTML = myBids.map(p => {
+          return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td><span class="turn-badge current">${p.status}</span></td></tr>`;
+        }).join('');
       }
-      table.innerHTML = myHistoryData.map(p => {
-        const isBid = p.recordType === 'bid';
-        const s = p.status || 'Pending';
-        const cls = isBid ? 'current' : (s === 'Approved' ? 'received' : 'pending');
-        const typeLbl = isBid ? '🔨 Boli' : '💰 Payment';
-        return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td>${typeLbl}</td><td><span class="turn-badge ${cls}">${s}</span></td></tr>`;
-      }).join('');
+
+      // Render Payment table
+      if (myPayments.length === 0) {
+        paymentTable.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi record nahi</td></tr>`;
+      } else {
+        paymentTable.innerHTML = myPayments.map(p => {
+          const s = p.status || 'Pending';
+          const cls = s === 'Approved' ? 'received' : 'pending';
+          return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td><span class="turn-badge ${cls}">${s}</span></td></tr>`;
+        }).join('');
+      }
     }
 
     window.exportExcel = function() {
