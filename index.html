@@ -429,8 +429,8 @@
           <button class="btn-outline" onclick="exportExcel()">📊 Excel Download</button>
         </div>
         <table>
-          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
-          <tbody id="historyTableBody"><tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
+          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Type</th><th>Status</th></tr></thead>
+          <tbody id="historyTableBody"><tr><td colspan="5" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1158,31 +1158,52 @@
       const table = document.getElementById('historyTableBody');
       myHistoryData = [];
       const cycles = getCyclesArray();
+
+      // Payments made by this user
       cycles.forEach(c => {
         Object.entries(c.payments || {}).forEach(([pid, p]) => {
           if (p.userId === currentUserData.uid || p.userPhone === currentUserData.phone) {
-            myHistoryData.push({ ...p, cycleName: c.name });
+            myHistoryData.push({ ...p, cycleName: c.name, recordType: 'payment' });
           }
         });
       });
+
+      // Boli (bids) placed by this user — including this month's bid
+      Object.values(allData.bids || {}).forEach(b => {
+        if (b.userId === currentUserData.uid || b.userPhone === currentUserData.phone) {
+          const cycle = allData.cycles[b.cycleId];
+          myHistoryData.push({
+            cycleName: cycle ? cycle.name : '-',
+            month: b.month,
+            amount: b.discountAmount,
+            status: 'Boli Lagayi',
+            timestamp: b.timestamp,
+            recordType: 'bid'
+          });
+        }
+      });
+
       myHistoryData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
       if (myHistoryData.length === 0) {
-        table.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi record nahi</td></tr>`;
+        table.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi record nahi</td></tr>`;
         return;
       }
       table.innerHTML = myHistoryData.map(p => {
+        const isBid = p.recordType === 'bid';
         const s = p.status || 'Pending';
-        const cls = s === 'Approved' ? 'received' : 'pending';
-        return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td><span class="turn-badge ${cls}">${s}</span></td></tr>`;
+        const cls = isBid ? 'current' : (s === 'Approved' ? 'received' : 'pending');
+        const typeLbl = isBid ? '🔨 Boli' : '💰 Payment';
+        return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td>${typeLbl}</td><td><span class="turn-badge ${cls}">${s}</span></td></tr>`;
       }).join('');
     }
 
     window.exportExcel = function() {
       if (myHistoryData.length === 0) return showToast('❌ Koi history nahi hai!', 'error');
-      let csv = 'Cycle,Month,Amount,UTR,Status\n';
+      let csv = 'Cycle,Month,Amount,Type,UTR,Status\n';
       myHistoryData.forEach(p => {
-        csv += `"${p.cycleName || ''}","${p.month || ''}",${p.amount || 0},"${p.utr || 'N/A'}","${p.status || 'Pending'}"\n`;
+        const typeLbl = p.recordType === 'bid' ? 'Boli' : 'Payment';
+        csv += `"${p.cycleName || ''}","${p.month || ''}",${p.amount || 0},"${typeLbl}","${p.utr || 'N/A'}","${p.status || 'Pending'}"\n`;
       });
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
