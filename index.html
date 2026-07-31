@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
@@ -269,11 +267,6 @@
 
       <!-- Quick Actions -->
       <div class="section-h">Quick Actions</div>
-      <button class="quick-action" onclick="navigate('manage')">
-        <div class="icon-box" style="background:rgba(74,222,128,0.2);">🐷</div>
-        <span class="label">Manage Cycles</span>
-        <span class="arrow">›</span>
-      </button>
       <button class="quick-action" onclick="navigate('pay')">
         <div class="icon-box" style="background:rgba(245,166,35,0.2);">💳</div>
         <span class="label">Pay Now</span>
@@ -291,72 +284,11 @@
       </button>
     </div>
 
-    <!-- ===== MANAGE CYCLES PAGE ===== -->
-    <div id="page-manage" class="page">
-      <div class="app-header" style="margin: -16px -16px 16px;">
-        <div class="left">
-          <button class="back-btn" onclick="navigate('dashboard')">←</button>
-          <h1>Manage Cycles</h1>
-        </div>
-      </div>
-      <div id="manageCyclesList"></div>
-      <button class="fab" onclick="navigate('new-cycle')" title="Add new cycle">+</button>
-    </div>
-
-    <!-- ===== NEW CYCLE PAGE ===== -->
-    <div id="page-new-cycle" class="page">
-      <div class="app-header" style="margin: -16px -16px 16px;">
-        <div class="left">
-          <button class="back-btn" onclick="navigate('manage')">←</button>
-          <h1>New Cycle</h1>
-        </div>
-      </div>
-      <form id="newCycleForm" style="padding: 4px;">
-        <div class="form-field">
-          <input type="text" id="ncName" placeholder="Cycle Name (e.g., Batch A 2026)">
-        </div>
-
-        <div class="date-field">
-          <div class="info">
-            <div class="lbl">Start Date</div>
-            <div class="val" id="ncStartDateDisplay">Select date</div>
-          </div>
-          <label class="cal-btn" style="position:relative;">
-            📅
-            <input type="date" id="ncStartDate" onchange="updateStartDateDisplay()" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
-          </label>
-        </div>
-
-        <div class="form-field">
-          <div class="label">Monthly Amount (₹)</div>
-          <input type="number" id="ncMonthlyAmount" min="1" value="2500" oninput="updateSummary()" required>
-        </div>
-
-        <div class="form-field">
-          <div class="label">Total Members</div>
-          <input type="number" id="ncTotalMembers" min="2" value="20" oninput="updateSummary()" required>
-        </div>
-
-        <div class="form-field">
-          <div class="label">Duration (Months)</div>
-          <input type="number" id="ncDuration" min="1" value="20" oninput="updateSummary()" required>
-        </div>
-
-        <div class="summary-card">
-          <div class="lbl">Total Pot</div>
-          <div class="val" id="ncSummaryVal">₹50000</div>
-          <div class="hint" id="ncSummaryHint">20 members × ₹2500 × 20 months</div>
-        </div>
-
-        <button type="submit" class="primary-btn" id="ncSubmitBtn">Create Cycle</button>
-      </form>
-    </div>
-
     <!-- ===== CYCLE DETAIL PAGE ===== -->
     <div id="page-cycle-detail" class="page">
       <div class="app-header" style="margin: -16px -16px 16px;">
         <div class="left">
-          <button class="back-btn" onclick="navigate('manage')">←</button>
+          <button class="back-btn" onclick="navigate('dashboard')">←</button>
           <h1 id="cdTitle">Cycle</h1>
         </div>
       </div>
@@ -562,11 +494,11 @@
 
       // Page-specific renders
       if (pageId === 'dashboard') renderDashboard();
-      if (pageId === 'manage') renderManage();
+
       if (pageId === 'pay') renderPaymentCycleSelect();
-      if (pageId === 'auction') { renderAuctionCycleSelect(); renderAuction(); }
+      else if (pageId === 'auction') { renderAuctionCycleSelect(); renderAuction(); }
       if (pageId === 'history') renderHistory();
-      if (pageId === 'new-cycle') resetNewCycleForm();
+
     };
 
     // ============ AUTH ============
@@ -651,7 +583,7 @@
         if (activePage) {
           const id = activePage.id.replace('page-', '');
           if (id === 'dashboard') renderDashboard();
-          else if (id === 'manage') renderManage();
+
           else if (id === 'pay') renderPaymentCycleSelect();
           else if (id === 'auction') { renderAuctionCycleSelect(); renderAuction(); }
           else if (id === 'history') renderHistory();
@@ -683,7 +615,7 @@
       const listEl = document.getElementById('collectionProgressList');
       listEl.innerHTML = '';
       if (cycles.length === 0) {
-        listEl.innerHTML = `<div class="card"><div class="empty"><div class="emoji">🐷</div><div class="text">Koi cycle nahi hai</div><div class="hint">Manage Cycles se naya cycle banayein</div></div></div>`;
+        listEl.innerHTML = `<div class="card"><div class="empty"><div class="emoji">🐷</div><div class="text">Koi cycle nahi hai</div><div class="hint">Admin se naya cycle banwane ko kahein</div></div></div>`;
         return;
       }
       cycles.forEach(c => {
@@ -755,128 +687,6 @@
         });
       }
     }
-
-    // ============ MANAGE CYCLES RENDER ============
-    function renderManage() {
-      const cycles = getCyclesArray();
-      const listEl = document.getElementById('manageCyclesList');
-      listEl.innerHTML = '';
-      if (cycles.length === 0) {
-        listEl.innerHTML = `<div class="card"><div class="empty"><div class="emoji">🐷</div><div class="text">Abhi tak koi cycle nahi hai</div><div class="hint">"+" button dabaake naya cycle banayein</div></div></div>`;
-        return;
-      }
-      cycles.forEach(c => {
-        const status = c.status || 'Active';
-        const statusClass = status === 'Active' ? 'active' : status === 'Completed' ? 'completed' : 'paused';
-        const monthlyTarget = Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0);
-        listEl.insertAdjacentHTML('beforeend', `
-          <div class="manage-item">
-            <div class="top">
-              <div onclick="openCycleDetail('${c.id}')" style="cursor:pointer;flex:1;">
-                <div class="amount">${monthlyTarget.toLocaleString('en-IN')}</div>
-                <div class="name">${c.name || 'Unnamed Cycle'}</div>
-              </div>
-              <span class="status-badge ${statusClass}" onclick="toggleCycleStatus('${c.id}')">${status}</span>
-            </div>
-            <div class="mid">
-              <div>📅 Start: ${fmtMonthYear(c.startDate)}</div>
-              <div>💰 <span class="amt">${fmtINR(c.monthlyAmount)}</span></div>
-            </div>
-            <div class="bot">
-              <div class="members">👥 ${c.totalMembers} Members</div>
-              <button class="delete-btn" onclick="deleteCycle('${c.id}', '${(c.name || 'Cycle').replace(/'/g, '\\\'')}')">🗑️</button>
-            </div>
-          </div>
-        `);
-      });
-    }
-
-    window.deleteCycle = async function(id, name) {
-      if (!confirm(`"${name}" cycle delete karna hai?\n\n⚠️ Iske saath sabhi members aur payments bhi delete ho jayenge!`)) return;
-      try {
-        await remove(ref(db, 'cycles/' + id));
-        showToast('🗑️ Cycle delete ho gaya', 'success');
-      } catch (err) {
-        showToast('❌ ' + err.message, 'error');
-      }
-    };
-
-    window.toggleCycleStatus = async function(id) {
-      const c = allData.cycles[id];
-      if (!c) return;
-      const newStatus = (c.status || 'Active') === 'Active' ? 'Completed' : 'Active';
-      try {
-        await update(ref(db, 'cycles/' + id), { status: newStatus });
-        showToast('✅ Status: ' + newStatus, 'success');
-      } catch (err) {
-        showToast('❌ ' + err.message, 'error');
-      }
-    };
-
-    // ============ NEW CYCLE FORM ============
-    function resetNewCycleForm() {
-      document.getElementById('ncName').value = '';
-      document.getElementById('ncStartDate').value = new Date().toISOString().slice(0, 10);
-      document.getElementById('ncMonthlyAmount').value = 2500;
-      document.getElementById('ncTotalMembers').value = 20;
-      document.getElementById('ncDuration').value = 20;
-      updateStartDateDisplay();
-      updateSummary();
-    }
-
-    window.updateStartDateDisplay = function() {
-      const v = document.getElementById('ncStartDate').value;
-      document.getElementById('ncStartDateDisplay').innerText = v ? fmtMonthYear(v) : 'Select date';
-    };
-
-    window.updateSummary = function() {
-      const amt = Number(document.getElementById('ncMonthlyAmount').value) || 0;
-      const mem = Number(document.getElementById('ncTotalMembers').value) || 0;
-      const dur = Number(document.getElementById('ncDuration').value) || 0;
-      const total = amt * mem * dur;
-      document.getElementById('ncSummaryVal').innerText = fmtINR(total);
-      document.getElementById('ncSummaryHint').innerText = `${mem} members × ${fmtINR(amt)} × ${dur} months`;
-    };
-
-    document.getElementById('newCycleForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('ncSubmitBtn');
-      const name = document.getElementById('ncName').value.trim() || `Cycle ${Object.keys(allData.cycles).length + 1}`;
-      const startDate = document.getElementById('ncStartDate').value || new Date().toISOString().slice(0, 10);
-      const monthlyAmount = Number(document.getElementById('ncMonthlyAmount').value);
-      const totalMembers = Number(document.getElementById('ncTotalMembers').value);
-      const durationMonths = Number(document.getElementById('ncDuration').value);
-
-      if (!monthlyAmount || monthlyAmount < 1) return showToast('❌ Monthly amount daalein', 'error');
-      if (!totalMembers || totalMembers < 2) return showToast('❌ Minimum 2 members chahiye', 'error');
-      if (!durationMonths || durationMonths < 1) return showToast('❌ Duration daalein', 'error');
-
-      btn.disabled = true;
-      btn.innerText = '⏳ Creating...';
-
-      try {
-        const newRef = push(ref(db, 'cycles'));
-        await set(newRef, {
-          name,
-          startDate,
-          monthlyAmount,
-          totalMembers,
-          durationMonths,
-          status: 'Active',
-          createdAt: Date.now(),
-          createdBy: currentUserData.uid || '',
-          members: {},
-          payments: {}
-        });
-        showToast('✅ Cycle create ho gaya!', 'success');
-        navigate('manage');
-      } catch (err) {
-        showToast('❌ ' + err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Create Cycle';
-      }
-    });
 
     // ============ CYCLE DETAIL ============
     window.openCycleDetail = function(cycleId) {
@@ -1170,5 +980,6 @@
       }
     }, 500);
   </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"3279d41ec7804124a29acc6e692f9a2b"}' crossorigin="anonymous"></script>
 </body>
 </html>
