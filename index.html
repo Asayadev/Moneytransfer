@@ -3,668 +3,211 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BC Committee - Dashboard</title>
+  <title>Community Help Platform</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f4f7f6; color: #333; padding-bottom: 40px; }
+    header { background: #10b981; color: white; text-align: center; padding: 20px 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; }
+    header h1 { font-size: 1.8rem; margin-bottom: 5px; }
+    .user-info-bar { background: #047857; color: white; padding: 8px 15px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
+    .user-info-bar button { background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+    
+    /* Stats Grid */
+    .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 15px; }
+    .stat-card { background: white; padding: 12px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .stat-card h3 { font-size: 1.1rem; color: #10b981; margin-bottom: 2px; }
+    .stat-card p { font-size: 0.75rem; color: #666; font-weight: 600; }
 
-    body {
-      background: #f0f4f8;
-      color: #1e293b;
-      min-height: 100vh;
-      padding-bottom: 30px;
-    }
+    nav { display: flex; justify-content: center; background: #059669; }
+    nav button { background: none; border: none; color: white; padding: 12px 15px; font-size: 0.95rem; cursor: pointer; transition: 0.3s; }
+    nav button:hover, nav button.active { background: #047857; font-weight: bold; }
+    
+    .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
+    .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    h2 { color: #059669; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #ecfdf5; padding-bottom: 5px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .bank-box { background: #ecfdf5; border: 1px dashed #10b981; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+    .bank-box p { margin-bottom: 8px; font-size: 0.9rem; }
+    
+    .form-group { margin-bottom: 12px; }
+    label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85rem; }
+    input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; }
+    button.btn-submit { width: 100%; background: #10b981; color: white; border: none; padding: 12px; font-size: 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+    button.btn-submit:hover { background: #059669; }
+    
+    .auth-toggle { text-align: center; margin-top: 10px; font-size: 0.85rem; }
+    .auth-toggle span { color: #3b82f6; cursor: pointer; text-decoration: underline; }
 
-    /* ===== HEADER ===== */
-    .header {
-      background: linear-gradient(135deg, #059669, #10b981);
-      color: white;
-      padding: 20px 16px 40px;
-      position: relative;
-      border-radius: 0 0 30px 30px;
-    }
-    .header-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .header h1 {
-      font-size: 1.3rem;
-      font-weight: 700;
-    }
-    .header h1 span {
-      font-weight: 300;
-      font-size: 0.9rem;
-      opacity: 0.8;
-    }
-    .header-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
-    .header-actions button {
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-    .header-actions .logout-btn {
-      background: #ef4444;
-    }
-    .dark-toggle {
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
-      font-size: 1.2rem;
-      padding: 5px 10px;
-      border-radius: 30px;
-      cursor: pointer;
-    }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+    th { background: #f9fafb; }
+    .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; }
+    .status-Approved { background: #d1fae5; color: #065f46; }
+    .status-Pending { background: #fef3c7; color: #92400e; }
 
-    .user-greeting {
-      margin-top: 12px;
-    }
-    .user-greeting h2 {
-      font-size: 1.4rem;
-      font-weight: 600;
-    }
-    .user-greeting p {
-      opacity: 0.8;
-      font-size: 0.9rem;
-    }
+    /* Clickable stat cards */
+    .stat-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; }
+    .stat-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+    .stat-card.clickable:active { transform: translateY(0); }
+    .stat-card.clickable::after { content: "›"; position: absolute; top: 6px; right: 8px; font-size: 0.9rem; color: #a7f3d0; font-weight: bold; }
 
-    /* ===== CYCLE STATUS CARDS ===== */
-    .cycle-status {
-      display: flex;
-      gap: 12px;
-      margin-top: -20px;
-      padding: 0 16px;
-    }
-    .cycle-card {
-      flex: 1;
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      border: 1px solid #e9edf2;
-    }
-    .cycle-card .label {
-      font-size: 0.7rem;
-      color: #94a3b8;
-      text-transform: uppercase;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-    .cycle-card .value {
-      font-size: 1.6rem;
-      font-weight: 700;
-      margin: 4px 0;
-    }
-    .cycle-card .value.active { color: #10b981; }
-    .cycle-card .value.completed { color: #3b82f6; }
-    .cycle-card .badge {
-      display: inline-block;
-      padding: 2px 12px;
-      border-radius: 20px;
-      font-size: 0.65rem;
-      font-weight: 600;
-    }
-    .badge-active { background: #d1fae5; color: #065f46; }
-    .badge-completed { background: #dbeafe; color: #1e40af; }
+    /* Modal for stat history */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; align-items: flex-end; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: #f4f7f6; width: 100%; max-width: 600px; max-height: 85vh; border-radius: 16px 16px 0 0; overflow: hidden; display: flex; flex-direction: column; animation: slideUp 0.25s ease-out; }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-header { background: #10b981; color: white; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .modal-header h3 { font-size: 1.05rem; }
+    .modal-header button { background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 1rem; cursor: pointer; line-height: 1; }
+    .modal-body { padding: 15px 18px; overflow-y: auto; }
+    .modal-body table { background: white; border-radius: 8px; overflow: hidden; }
+    .modal-loading, .modal-empty { text-align: center; padding: 20px; color: #666; font-size: 0.9rem; }
 
-    /* ===== STATS GRID ===== */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      padding: 16px;
-    }
-    .stat-card {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 1px solid #e9edf2;
-      text-align: center;
-    }
-    .stat-card .icon {
-      font-size: 1.8rem;
-      display: block;
-      margin-bottom: 4px;
-    }
-    .stat-card .number {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #059669;
-    }
-    .stat-card .label {
-      font-size: 0.7rem;
-      color: #94a3b8;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-
-    /* ===== PROGRESS SECTION ===== */
-    .progress-section {
-      padding: 0 16px;
-      margin-bottom: 16px;
-    }
-    .progress-card {
-      background: white;
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 1px solid #e9edf2;
-    }
-    .progress-card .header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-    .progress-card .header-row h3 {
-      font-size: 1rem;
-      font-weight: 600;
-    }
-    .progress-card .header-row .percent {
-      font-size: 1.2rem;
-      font-weight: 700;
-      color: #059669;
-    }
-    .progress-bar {
-      width: 100%;
-      height: 10px;
-      background: #e2e8f0;
-      border-radius: 20px;
-      overflow: hidden;
-    }
-    .progress-bar .fill {
-      height: 100%;
-      background: linear-gradient(90deg, #10b981, #059669);
-      border-radius: 20px;
-      transition: width 0.6s ease;
-    }
-    .progress-details {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 8px;
-      font-size: 0.8rem;
-      color: #64748b;
-    }
-    .progress-details .amount {
-      font-weight: 600;
-      color: #1e293b;
-    }
-
-    /* ===== TURN STATUS ===== */
-    .turn-status {
-      padding: 0 16px;
-      margin-bottom: 16px;
-    }
-    .turn-card {
-      background: linear-gradient(135deg, #eff6ff, #dbeafe);
-      border: 2px solid #3b82f6;
-      border-radius: 16px;
-      padding: 18px;
-      text-align: center;
-    }
-    .turn-card .label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: #1e40af;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      background: #bfdbfe;
-      display: inline-block;
-      padding: 2px 14px;
-      border-radius: 20px;
-      margin-bottom: 6px;
-    }
-    .turn-card h3 {
-      color: #1e3a8a;
-      font-size: 1.2rem;
-      margin: 6px 0;
-    }
-    .turn-card p {
-      color: #334155;
-      font-size: 0.9rem;
-    }
-    .turn-card .action-btns {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-    .turn-card .action-btns a, .turn-card .action-btns button {
-      padding: 8px 18px;
-      border-radius: 8px;
-      border: none;
-      font-weight: 600;
-      font-size: 0.8rem;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-    .btn-whatsapp { background: #25D366; color: white; }
-    .btn-pdf { background: #ef4444; color: white; }
-
-    /* ===== NAV TABS ===== */
-    .nav-tabs {
-      display: flex;
-      gap: 6px;
-      background: white;
-      padding: 6px;
-      border-radius: 14px;
-      margin: 0 16px 16px;
-      border: 1px solid #e9edf2;
-    }
-    .nav-tabs button {
-      flex: 1;
-      background: transparent;
-      border: none;
-      padding: 10px 0;
-      border-radius: 10px;
-      font-weight: 600;
-      color: #64748b;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 0.85rem;
-    }
-    .nav-tabs button.active {
-      background: #059669;
-      color: white;
-      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
-    }
-
-    /* ===== TAB CONTENT ===== */
-    .tab-content {
-      display: none;
-      padding: 0 16px;
-    }
-    .tab-content.active {
-      display: block;
-    }
-
-    .tab-card {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      border: 1px solid #e9edf2;
-      margin-bottom: 16px;
-    }
-    .tab-card h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: #1e293b;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-    th, td {
-      padding: 10px 8px;
-      border-bottom: 1px solid #eef2f6;
-      text-align: left;
-    }
-    th {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      color: #94a3b8;
-      font-weight: 600;
-    }
-    .badge {
-      padding: 3px 12px;
-      border-radius: 20px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      display: inline-block;
-    }
-    .badge-received { background: #d1fae5; color: #065f46; }
-    .badge-pending { background: #fef3c7; color: #92400e; }
-    .badge-current { background: #dbeafe; color: #1e40af; border: 1px solid #3b82f6; }
-    .highlight-row { background: #eff6ff !important; border-left: 4px solid #3b82f6; }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      font-size: 0.85rem;
-      margin-bottom: 4px;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #d1d9e6;
-      border-radius: 8px;
-      font-size: 0.95rem;
-      background: #fafbfc;
-    }
-    .form-group input:focus {
-      outline: 2px solid #10b981;
-      outline-offset: 1px;
-      border-color: transparent;
-    }
-    .btn-submit {
-      width: 100%;
-      padding: 12px;
-      background: #10b981;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 1rem;
-      cursor: pointer;
-    }
-    .btn-submit:hover { background: #059669; }
-
-    .bank-box {
-      background: #f8fafc;
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 16px;
-      font-size: 0.9rem;
-      border: 1px solid #e9edf2;
-    }
-    .bank-box p { margin: 4px 0; }
-
-    /* ===== TOAST ===== */
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e293b;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 12px;
-      font-weight: 600;
-      z-index: 9999;
-      display: none;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      max-width: 90%;
-      text-align: center;
-    }
-    .toast.success { background: #059669; }
-    .toast.error { background: #ef4444; }
-
-    /* ===== AUTH ===== */
-    .auth-container {
-      max-width: 400px;
-      margin: 40px auto;
-      padding: 0 16px;
-    }
-    .auth-card {
-      background: white;
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      border: 1px solid #e9edf2;
-    }
-    .auth-card h2 {
-      color: #059669;
-      font-size: 1.3rem;
-      margin-bottom: 16px;
-      text-align: center;
-    }
-    .auth-card .form-group {
-      position: relative;
-    }
-    .auth-card .password-toggle {
-      position: absolute;
-      right: 12px;
-      top: 35px;
-      cursor: pointer;
-      font-size: 1.2rem;
-      background: none;
-      border: none;
-      color: #94a3b8;
-    }
-    .auth-card .auth-toggle {
-      text-align: center;
-      margin-top: 14px;
-      font-size: 0.9rem;
-      color: #64748b;
-    }
-    .auth-card .auth-toggle span {
-      color: #2563eb;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .small-note {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      margin-top: 4px;
-    }
-
-    /* ===== DARK MODE ===== */
-    [data-theme="dark"] {
-      --bg: #0f172a;
-      --card-bg: #1e293b;
-      --text: #e2e8f0;
-      --border: #334155;
-    }
-    [data-theme="dark"] body { background: #0f172a; color: #e2e8f0; }
-    [data-theme="dark"] .cycle-card,
-    [data-theme="dark"] .stat-card,
-    [data-theme="dark"] .progress-card,
-    [data-theme="dark"] .tab-card,
-    [data-theme="dark"] .auth-card,
-    [data-theme="dark"] .nav-tabs { background: #1e293b; border-color: #334155; }
-    [data-theme="dark"] .turn-card { background: #1e293b; border-color: #3b82f6; }
-    [data-theme="dark"] .turn-card h3 { color: #60a5fa; }
-    [data-theme="dark"] .turn-card p { color: #94a3b8; }
-    [data-theme="dark"] .bank-box { background: #1e293b; border-color: #334155; }
-    [data-theme="dark"] .stat-card .number { color: #34d399; }
-    [data-theme="dark"] .progress-card .header-row .percent { color: #34d399; }
-
-    @media (max-width: 480px) {
-      .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-      .cycle-status { flex-direction: row; }
-      .header h1 { font-size: 1.1rem; }
-    }
+    /* Login improvements */
+    .password-wrap { position: relative; }
+    .password-wrap input { padding-right: 42px; }
+    .toggle-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 0.85rem; color: #059669; user-select: none; }
+    .field-error { color: #ef4444; font-size: 0.75rem; margin-top: 3px; display: none; }
+    .forgot-pass { text-align: right; font-size: 0.8rem; margin: -6px 0 12px; }
+    .forgot-pass span { color: #3b82f6; cursor: pointer; text-decoration: underline; }
+    button.btn-submit:disabled { background: #9ca3af; cursor: not-allowed; }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.5); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <!-- TOAST -->
-  <div id="toast" class="toast"></div>
+  <header>
+    <h1> Community Help</h1>
+    <p>Sabka Thoda Sabki Badi Madad</p>
+  </header>
 
-  <!-- AUTH SECTION -->
-  <div id="authSection" class="auth-container">
-    <div class="auth-card">
-      <h2 id="authTitle">🔐 Login</h2>
+  <!-- User Bar -->
+  <div id="userBar" class="user-info-bar" style="display:none;">
+    <span>Welcome, <strong id="userEmailDisplay">User</strong></span>
+    <button onclick="logoutUser()">Logout</button>
+  </div>
+
+  <!-- Realtime Overall Stats -->
+  <div class="stats-container">
+    <div class="stat-card"><h3 id="statTotalBal">₹0</h3><p>Total Balance</p></div>
+    <div class="stat-card clickable" onclick="openStatModal('totalUsers')"><h3 id="statTotalUsers">0</h3><p>Total Users</p></div>
+    <div class="stat-card clickable" onclick="openStatModal('paidUsers')"><h3 id="statPaidUsers">0</h3><p>Paid Users</p></div>
+    <div class="stat-card clickable" onclick="openStatModal('pendingUsers')"><h3 id="statPendingUsers">0</h3><p>Pending</p></div>
+    <div class="stat-card clickable" onclick="openStatModal('peopleHelped')"><h3 id="statPeopleHelped">0</h3><p>People Helped</p></div>
+  </div>
+
+  <!-- Stat History Modal -->
+  <div id="statModalOverlay" class="modal-overlay" onclick="if(event.target===this) closeStatModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="statModalTitle">History</h3>
+        <button onclick="closeStatModal()">✕</button>
+      </div>
+      <div class="modal-body" id="statModalBody">
+        <div class="modal-loading">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav id="mainNav" style="display:none;">
+    <button class="nav-btn active" onclick="switchTab('pay-tab', this)">Payment</button>
+    <button class="nav-btn" onclick="switchTab('history-tab', this)">Mera History</button>
+  </nav>
+
+  <div class="container">
+
+    <!-- AUTH SECTION (LOGIN / REGISTER) -->
+    <div id="authSection" class="card">
+      <h2 id="authTitle">Gmail & Password Login</h2>
       <form id="authForm">
         <div class="form-group" id="nameGroup" style="display: none;">
-          <label>👤 Pura Naam</label>
-          <input type="text" id="authName" placeholder="Jaise: Rajesh Kumar">
+          <label for="authName">Aapka Pura Naam:</label>
+          <input type="text" id="authName" placeholder="Pura naam enter karein">
         </div>
         <div class="form-group">
-          <label>📧 Gmail ID</label>
+          <label for="authEmail">Gmail ID:</label>
           <input type="email" id="authEmail" placeholder="example@gmail.com" required>
         </div>
         <div class="form-group">
-          <label>📱 Mobile Number</label>
-          <input type="tel" id="authPhone" placeholder="9876543210" required pattern="[0-9]{10}">
+          <label for="authPhone">Mobile Number:</label>
+          <input type="tel" id="authPhone" placeholder="10-digit Mobile Number" required pattern="[0-9]{10}">
         </div>
         <div class="form-group">
-          <label>🔑 Password</label>
-          <input type="password" id="authPassword" placeholder="●●●●●●" required minlength="6">
-          <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
+          <label for="authPassword">Password:</label>
+          <div class="password-wrap">
+            <input type="password" id="authPassword" placeholder="Minimum 6 characters" required minlength="6">
+            <span class="toggle-eye" id="pwToggle" onclick="togglePasswordView()">Show</span>
+          </div>
+          <div class="field-error" id="authError"></div>
         </div>
-        <button type="submit" class="btn-submit" id="authBtn">Login</button>
+        <p class="forgot-pass" id="forgotPassBlock"><span onclick="handleForgotPassword()">Password bhool gaye?</span></p>
+        <button type="submit" class="btn-submit" id="authBtn">Login Karein</button>
       </form>
-      <p class="auth-toggle" id="authToggleText">Naya account? <span onclick="toggleAuthMode(true)">Register karein</span></p>
-    </div>
-  </div>
-
-  <!-- MAIN DASHBOARD -->
-  <div id="appSection" style="display:none;">
-
-    <!-- HEADER -->
-    <div class="header">
-      <div class="header-top">
-        <h1>BC Committee <span>| Cycle <span id="cycleDisplay">1</span></span></h1>
-        <div class="header-actions">
-          <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
-          <button class="logout-btn" onclick="logoutUser()">Logout</button>
-        </div>
-      </div>
-      <div class="user-greeting">
-        <h2>🙏 <span id="userEmailDisplay">User</span></h2>
-        <p id="greetingMsg">Welcome back! Here's your committee status.</p>
-      </div>
+      <p class="auth-toggle" id="authToggleText">Account nahi hai? <span onclick="toggleAuthMode(true)">Naya Account Banayein</span></p>
     </div>
 
-    <!-- CYCLE STATUS -->
-    <div class="cycle-status">
-      <div class="cycle-card">
-        <div class="label">Active</div>
-        <div class="value active" id="activeCycleCount">0</div>
-        <span class="badge badge-active">● Active</span>
-      </div>
-      <div class="cycle-card">
-        <div class="label">Completed</div>
-        <div class="value completed" id="completedCycleCount">0</div>
-        <span class="badge badge-completed">● Completed</span>
-      </div>
-    </div>
-
-    <!-- STATS -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <span class="icon">💰</span>
-        <div class="number" id="statTotalAmount">₹0</div>
-        <div class="label">Total Collection</div>
-      </div>
-      <div class="stat-card">
-        <span class="icon">📆</span>
-        <div class="number" id="statThisMonth">₹0</div>
-        <div class="label">This Month</div>
-      </div>
-      <div class="stat-card">
-        <span class="icon">👥</span>
-        <div class="number" id="statTotalUsers">0</div>
-        <div class="label">Total Members</div>
-      </div>
-      <div class="stat-card">
-        <span class="icon">📌</span>
-        <div class="number" id="statMyStatus">-</div>
-        <div class="label">My Status</div>
-      </div>
-    </div>
-
-    <!-- PROGRESS -->
-    <div class="progress-section">
-      <div class="progress-card">
-        <div class="header-row">
-          <h3>📊 Collection Progress</h3>
-          <span class="percent" id="progressPercent">0%</span>
-        </div>
-        <div class="progress-bar">
-          <div class="fill" id="progressFill" style="width: 0%;"></div>
-        </div>
-        <div class="progress-details">
-          <span>Collected: <span class="amount" id="progressCollected">₹0</span></span>
-          <span>Target: <span class="amount" id="progressTarget">₹0</span></span>
-          <span><span id="progressMembers">0</span> Members</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- TURN STATUS -->
-    <div class="turn-status">
-      <div class="turn-card" id="turnCard">
-        <span class="label">🎯 Your Turn Status</span>
-        <h3 id="myTurnStatus">Loading...</h3>
-        <p id="myTurnDetail">Kripya wait karein...</p>
-        <div class="action-btns" id="turnActions" style="display:none;">
-          <a id="whatsappLink" href="#" target="_blank" class="btn-whatsapp">💬 WhatsApp</a>
-          <button onclick="generatePDF()" class="btn-pdf">📄 Receipt PDF</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- NAV TABS -->
-    <div class="nav-tabs">
-      <button class="active" onclick="switchTab('queue-tab', this)">📋 Queue</button>
-      <button onclick="switchTab('pay-tab', this)">💳 Pay</button>
-      <button onclick="switchTab('history-tab', this)">📜 History</button>
-    </div>
-
-    <!-- QUEUE TAB -->
-    <section id="queue-tab" class="tab-content active">
-      <div class="tab-card">
-        <h3>📌 Rotation Queue <span style="font-size:0.7rem;color:#94a3b8;font-weight:normal;">(Current turn highlighted)</span></h3>
-        <table>
-          <thead><tr><th>#</th><th>Member</th><th>Status</th></tr></thead>
-          <tbody id="queueTableBody"><tr><td colspan="3" style="text-align:center;">Loading...</td></tr></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- PAY TAB -->
-    <section id="pay-tab" class="tab-content">
-      <div class="tab-card">
-        <h3>💸 Payment Submit</h3>
-        <div class="bank-box">
-          <p><strong>UPI:</strong> <span id="dispUpi">---</span></p>
-          <p><strong>Account:</strong> <span id="dispAccName">---</span></p>
-          <p><strong>Acc No:</strong> <span id="dispAccNo">---</span></p>
-          <p><strong>IFSC:</strong> <span id="dispIfsc">---</span></p>
-        </div>
-        <form id="paymentForm">
-          <div class="form-group">
-            <label>₹ Amount <span style="color:#ef4444;">*</span></label>
-            <input type="number" id="amount" placeholder="Enter amount" min="1" required>
-            <p class="small-note">💡 Minimum ₹1</p>
+    <!-- MAIN APP CONTENT (Login ke baad dikhega) -->
+    <div id="appSection" style="display:none;">
+      
+      <!-- PAYMENT TAB -->
+      <section id="pay-tab" class="tab-content active">
+        <div class="card">
+          <h2>Direct Bank / UPI Transfer</h2>
+          <div class="bank-box">
+            <p><strong>UPI ID:</strong> <span id="dispUpi">Loading...</span></p>
+            <p><strong>Account Name:</strong> <span id="dispAccName">Loading...</span></p>
+            <p><strong>Account No:</strong> <span id="dispAccNo">Loading...</span></p>
+            <p><strong>IFSC Code:</strong> <span id="dispIfsc">Loading...</span></p>
           </div>
-          <div class="form-group">
-            <label>UTR / Reference ID <span style="color:#ef4444;">*</span></label>
-            <input type="text" id="utr" placeholder="Jaise: 123456789012" maxlength="12" required>
-            <p class="small-note">⚠️ UTR number dalna zaroori hai</p>
-          </div>
-          <button type="submit" class="btn-submit" id="submitBtn">✅ Submit Proof</button>
-        </form>
-      </div>
-    </section>
 
-    <!-- HISTORY TAB -->
-    <section id="history-tab" class="tab-content">
-      <div class="tab-card">
-        <h3>📖 Mera History</h3>
-        <div style="margin-bottom:10px;">
-          <button onclick="exportExcel()" style="padding:8px 16px; background:#10b981; color:white; border:none; border-radius:8px; cursor:pointer;">
-            📊 Excel Download
-          </button>
+          <form id="paymentForm">
+            <div class="form-group">
+              <label for="amount">Contribution Amount (₹):</label>
+              <input type="number" id="amount" value="10" min="10" required>
+            </div>
+
+            <div class="form-group">
+              <label for="utr">12-Digit UTR / Reference ID:</label>
+              <input type="text" id="utr" maxlength="12" minlength="12" placeholder="GPay/PhonePe UTR Number" required>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">Payment Proof Submit Karein</button>
+          </form>
         </div>
-        <table>
-          <thead><tr><th>Month</th><th>Amount</th><th>UTR</th><th>Status</th></tr></thead>
-          <tbody id="historyTableBody"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
-        </table>
-      </div>
-    </section>
+      </section>
+
+      <!-- HISTORY TAB -->
+      <section id="history-tab" class="tab-content">
+        <div class="card">
+          <h2>Mera Contribution History</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Mahina</th>
+                <th>Amount</th>
+                <th>UTR</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="historyTableBody">
+              <tr><td colspan="4" style="text-align:center;">Loading history...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
 
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Firebase Modular SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, push, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
@@ -683,407 +226,383 @@
 
     let currentUserData = null;
     let isRegisterMode = false;
-    let myHistoryData = [];
-    let currentTurnData = null;
-    let currentCycle = 1;
-    let currentMonthName = '';
+    let globalUsers = {};
+    let globalDonations = {};
+    let globalHelpedRecords = {};
+    let globalPeopleHelpedCount = 0;
 
-    // ====== TOAST ======
-    function showToast(message, type = 'success') {
-      const toast = document.getElementById('toast');
-      toast.textContent = message;
-      toast.className = 'toast ' + type;
-      toast.style.display = 'block';
-      setTimeout(() => { toast.style.display = 'none'; }, 3000);
-    }
-
-    // ====== DARK MODE ======
-    window.toggleDarkMode = function() {
-      const html = document.documentElement;
-      const btn = document.querySelector('.dark-toggle');
-      if (html.getAttribute('data-theme') === 'dark') {
-        html.removeAttribute('data-theme');
-        btn.textContent = '🌙';
-        localStorage.setItem('theme', 'light');
-      } else {
-        html.setAttribute('data-theme', 'dark');
-        btn.textContent = '☀️';
-        localStorage.setItem('theme', 'dark');
-      }
-    };
-    if (localStorage.getItem('theme') === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      if (document.querySelector('.dark-toggle')) {
-        document.querySelector('.dark-toggle').textContent = '☀️';
-      }
-    }
-
-    // ====== PASSWORD TOGGLE ======
-    window.togglePassword = function() {
-      const pwd = document.getElementById('authPassword');
-      const btn = document.querySelector('.password-toggle');
-      if (pwd.type === 'password') {
-        pwd.type = 'text';
-        btn.textContent = '🙈';
-      } else {
-        pwd.type = 'password';
-        btn.textContent = '👁️';
-      }
-    };
-
+    // Toggle Login vs Register UI
     window.toggleAuthMode = function(register) {
       isRegisterMode = register;
-      document.getElementById('authTitle').innerText = register ? "📝 Register" : "🔐 Login";
+      document.getElementById('authTitle').innerText = register ? "Naya Account Banayein" : "Gmail & Password Login";
       document.getElementById('nameGroup').style.display = register ? "block" : "none";
-      document.getElementById('authBtn').innerText = register ? "Register" : "Login";
-      document.getElementById('authToggleText').innerHTML = register ?
-        `Already have account? <span onclick="toggleAuthMode(false)">Login</span>` :
-        `New user? <span onclick="toggleAuthMode(true)">Register</span>`;
+      document.getElementById('authBtn').innerText = register ? "Register Karein" : "Login Karein";
+      document.getElementById('forgotPassBlock').style.display = register ? "none" : "block";
+      document.getElementById('authError').style.display = "none";
+      document.getElementById('authToggleText').innerHTML = register ? 
+        `Pehle se account hai? <span onclick="toggleAuthMode(false)">Login Karein</span>` : 
+        `Account nahi hai? <span onclick="toggleAuthMode(true)">Naya Account Banayein</span>`;
     };
 
+    // Show/Hide password
+    window.togglePasswordView = function() {
+      const pwInput = document.getElementById('authPassword');
+      const toggle = document.getElementById('pwToggle');
+      if (pwInput.type === 'password') {
+        pwInput.type = 'text';
+        toggle.innerText = 'Hide';
+      } else {
+        pwInput.type = 'password';
+        toggle.innerText = 'Show';
+      }
+    };
+
+    // Forgot Password
+    window.handleForgotPassword = async function() {
+      const email = document.getElementById('authEmail').value.trim();
+      if (!email) {
+        alert("Pehle apni Gmail ID enter karein, phir 'Password bhool gaye?' par click karein.");
+        return;
+      }
+      try {
+        await sendPasswordResetEmail(auth, email);
+        alert("Password reset link aapki email (" + email + ") par bhej diya gaya hai. Inbox check karein.");
+      } catch (err) {
+        showAuthError(friendlyAuthError(err));
+      }
+    };
+
+    // Friendly error messages for common Firebase auth errors
+    function friendlyAuthError(err) {
+      const code = err.code || '';
+      const map = {
+        'auth/invalid-email': 'Gmail ID sahi format mein nahi hai.',
+        'auth/user-not-found': 'Is Gmail se koi account nahi mila. Pehle Register karein.',
+        'auth/wrong-password': 'Password galat hai. Dobara try karein.',
+        'auth/invalid-credential': 'Email ya Password galat hai.',
+        'auth/email-already-in-use': 'Yeh Gmail pehle se register hai. Login karein.',
+        'auth/weak-password': 'Password kam se kam 6 characters ka hona chahiye.',
+        'auth/too-many-requests': 'Bahut zyada attempts ho gaye hain. Thodi der baad try karein.',
+        'auth/network-request-failed': 'Internet connection check karein.'
+      };
+      return map[code] || (err.message || 'Kuch galat ho gaya, dobara try karein.');
+    }
+
+    function showAuthError(msg) {
+      const errBox = document.getElementById('authError');
+      errBox.innerText = msg;
+      errBox.style.display = 'block';
+    }
+
+    // Auth Form Submit
     document.getElementById('authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('authEmail').value;
+      const email = document.getElementById('authEmail').value.trim();
       const password = document.getElementById('authPassword').value;
-      const phone = document.getElementById('authPhone').value;
-      const name = document.getElementById('authName').value;
+      const phone = document.getElementById('authPhone').value.trim();
+      const name = document.getElementById('authName').value.trim();
+      const authBtn = document.getElementById('authBtn');
+      document.getElementById('authError').style.display = 'none';
+
+      // Basic validation
+      if (isRegisterMode && !name) {
+        showAuthError("Kripya apna pura naam enter karein.");
+        return;
+      }
+      if (!/^[0-9]{10}$/.test(phone)) {
+        showAuthError("Mobile number 10 digit ka hona chahiye.");
+        return;
+      }
+      if (password.length < 6) {
+        showAuthError("Password kam se kam 6 characters ka hona chahiye.");
+        return;
+      }
+
+      const originalBtnText = authBtn.innerText;
+      authBtn.disabled = true;
+      authBtn.innerHTML = `<span class="spinner"></span> ${isRegisterMode ? 'Account ban raha hai...' : 'Login ho raha hai...'}`;
 
       try {
         if (isRegisterMode) {
           const res = await createUserWithEmailAndPassword(auth, email, password);
           await set(ref(db, 'users/' + res.user.uid), {
-            name, email, phone, uid: res.user.uid, createdAt: Date.now()
+            name: name,
+            email: email,
+            phone: phone,
+            createdAt: Date.now()
           });
-          showToast("✅ Account ban gaya! Ab login karein.", "success");
+          alert("Account successfully ban gaya!");
         } else {
           await signInWithEmailAndPassword(auth, email, password);
-          showToast("✅ Login successful!", "success");
         }
       } catch (err) {
-        showToast("❌ " + err.message, "error");
+        showAuthError(friendlyAuthError(err));
+      } finally {
+        authBtn.disabled = false;
+        authBtn.innerText = originalBtnText;
       }
     });
 
+    // Auth State Observer
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('appSection').style.display = 'block';
+        document.getElementById('mainNav').style.display = 'flex';
+        document.getElementById('userBar').style.display = 'flex';
 
+        // Get User Profile
         const userSnap = await get(child(ref(db), `users/${user.uid}`));
         if (userSnap.exists()) {
           currentUserData = userSnap.val();
+          currentUserData.uid = user.uid;
           document.getElementById('userEmailDisplay').innerText = currentUserData.name || currentUserData.email;
         } else {
-          currentUserData = { email: user.email, uid: user.uid };
+          currentUserData = { email: user.email, uid: user.uid, phone: "" };
           document.getElementById('userEmailDisplay').innerText = user.email;
         }
-        listenToSystemData();
+
+        loadUserHistory();
       } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('appSection').style.display = 'none';
+        document.getElementById('mainNav').style.display = 'none';
+        document.getElementById('userBar').style.display = 'none';
         currentUserData = null;
       }
     });
 
     window.logoutUser = () => signOut(auth);
 
-    function getCurrentMonth() {
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const date = new Date();
-      return monthNames[date.getMonth()] + " " + date.getFullYear();
-    }
+    // Live Stats & Bank Account Listener
+    onValue(ref(db), (snapshot) => {
+      if (!snapshot.exists()) return;
+      const data = snapshot.val();
 
-    function listenToSystemData() {
-      onValue(ref(db), (snapshot) => {
-        if (!snapshot.exists()) return;
-        const data = snapshot.val();
+      // Bank Details Sync
+      if(data.bankDetails) {
+        document.getElementById('dispUpi').innerText = data.bankDetails.upi || '-';
+        document.getElementById('dispAccName').innerText = data.bankDetails.accName || '-';
+        document.getElementById('dispAccNo').innerText = data.bankDetails.accNo || '-';
+        document.getElementById('dispIfsc').innerText = data.bankDetails.ifsc || '-';
+      }
 
-        currentMonthName = getCurrentMonth();
-        currentCycle = data.currentCycle || 1;
-        document.getElementById('cycleDisplay').innerText = currentCycle;
+      // Stats Calculation
+      let totalBal = 0;
+      let paidCount = 0;
+      let pendingCount = 0;
+      const donations = data.donations || {};
+      const users = data.users || {};
 
-        if (data.bankDetails) {
-          document.getElementById('dispUpi').innerText = data.bankDetails.upi || '-';
-          document.getElementById('dispAccName').innerText = data.bankDetails.accName || '-';
-          document.getElementById('dispAccNo').innerText = data.bankDetails.accNo || '-';
-          document.getElementById('dispIfsc').innerText = data.bankDetails.ifsc || '-';
+      // Save globally so stat modals can use it
+      globalUsers = users;
+      globalDonations = donations;
+      globalHelpedRecords = data.helpedRecords || {};
+      globalPeopleHelpedCount = data.peopleHelpedCount || 0;
+
+      Object.values(donations).forEach(d => {
+        if (d.status === 'Approved') {
+          totalBal += Number(d.amount || 0);
+          paidCount++;
+        } else if (d.status === 'Pending') {
+          pendingCount++;
         }
-
-        const users = data.users || {};
-        const donations = data.donations || {};
-        const queue = data.queue || [];
-
-        // ====== CYCLE STATUS ======
-        // Active cycles = current cycle (1)
-        // Completed cycles = currentCycle - 1
-        document.getElementById('activeCycleCount').innerText = 1;
-        document.getElementById('completedCycleCount').innerText = currentCycle > 1 ? currentCycle - 1 : 0;
-
-        // ====== TOTAL USERS ======
-        document.getElementById('statTotalUsers').innerText = Object.keys(users).length;
-
-        // ====== TOTAL COLLECTION ======
-        let totalCollection = 0;
-        Object.values(donations).forEach(item => {
-          if (item.status === 'Approved') totalCollection += Number(item.amount || 0);
-        });
-        document.getElementById('statTotalAmount').innerText = '₹' + totalCollection;
-
-        // ====== THIS MONTH COLLECTION ======
-        let thisMonthCollection = 0;
-        Object.values(donations).forEach(item => {
-          if (item.status === 'Approved' && item.month === currentMonthName) {
-            thisMonthCollection += Number(item.amount || 0);
-          }
-        });
-
-        // Check if current turn is received
-        let activeIdx = -1;
-        queue.forEach((m, i) => {
-          if (activeIdx === -1 && m.status === 'Pending') activeIdx = i;
-        });
-
-        if (activeIdx !== -1 && queue[activeIdx]?.status === 'Received') {
-          document.getElementById('statThisMonth').innerText = '₹0';
-        } else {
-          document.getElementById('statThisMonth').innerText = '₹' + thisMonthCollection;
-        }
-
-        // ====== PROGRESS ======
-        const totalMembers = queue.length || 1;
-        const paidMembers = queue.filter(m => m.status === 'Received').length;
-        const progressPercent = Math.round((paidMembers / totalMembers) * 100);
-        document.getElementById('progressPercent').innerText = progressPercent + '%';
-        document.getElementById('progressFill').style.width = progressPercent + '%';
-        document.getElementById('progressCollected').innerText = '₹' + (paidMembers * 10);
-        document.getElementById('progressTarget').innerText = '₹' + (totalMembers * 10);
-        document.getElementById('progressMembers').innerText = totalMembers;
-
-        // ====== QUEUE ======
-        const queueTable = document.getElementById('queueTableBody');
-        queueTable.innerHTML = "";
-        let myIndex = -1;
-
-        if (queue.length === 0) {
-          queueTable.innerHTML = `<tr><td colspan="3" style="text-align:center;">⏳ Queue empty</td></tr>`;
-        } else {
-          // Find active turn
-          let localActiveIdx = -1;
-          queue.forEach((m, i) => {
-            if (localActiveIdx === -1 && m.status === 'Pending') localActiveIdx = i;
-          });
-
-          queue.forEach((member, idx) => {
-            if (member.uid === currentUserData.uid || member.phone === currentUserData.phone) myIndex = idx;
-            
-            const isCurrentTurn = (idx === localActiveIdx && member.status === 'Pending');
-            const isReceived = member.status === 'Received';
-
-            let badgeHtml;
-            if (isReceived) {
-              badgeHtml = `<span class="badge badge-received">✅ Received</span>`;
-            } else if (isCurrentTurn) {
-              badgeHtml = `<span class="badge badge-current">🎯 Current</span>`;
-            } else {
-              badgeHtml = `<span class="badge badge-pending">⏳ Pending</span>`;
-            }
-            const rowClass = isCurrentTurn ? 'highlight-row' : '';
-
-            queueTable.innerHTML += `
-              <tr class="${rowClass}">
-                <td><strong>#${idx + 1}</strong></td>
-                <td>${member.name} ${isCurrentTurn ? '👑' : ''}</td>
-                <td>${badgeHtml}</td>
-              </tr>
-            `;
-          });
-        }
-
-        // ====== TURN STATUS ======
-        const turnTitle = document.getElementById('myTurnStatus');
-        const turnDetail = document.getElementById('myTurnDetail');
-        const turnActions = document.getElementById('turnActions');
-        const whatsappLink = document.getElementById('whatsappLink');
-
-        let activeIdxFinal = -1;
-        queue.forEach((m, i) => {
-          if (activeIdxFinal === -1 && m.status === 'Pending') activeIdxFinal = i;
-        });
-
-        if (myIndex === -1) {
-          turnTitle.innerText = "❌ Queue mein nahi hain";
-          turnDetail.innerText = "Admin se request karein apna naam add karwane ke liye.";
-          document.getElementById('statMyStatus').innerText = 'Not in Queue';
-          turnActions.style.display = 'none';
-          currentTurnData = null;
-        } else {
-          const myData = queue[myIndex];
-          if (myData.status === 'Received') {
-            turnTitle.innerText = "✅ Turn Completed!";
-            turnDetail.innerText = "Aapko is cycle ka amount mil gaya.";
-            document.getElementById('statMyStatus').innerText = '✅ Received';
-            turnActions.style.display = 'none';
-            currentTurnData = null;
-          } else if (myIndex === activeIdxFinal) {
-            turnTitle.innerText = "🎯 Is mahine aapka turn hai!";
-            turnDetail.innerText = `Cycle ${currentCycle} | Turn #${myIndex+1} | Amount: ₹${totalMembers * 10}`;
-            document.getElementById('statMyStatus').innerText = '🎯 Current';
-            currentTurnData = myData;
-            const phone = myData.phone || '';
-            const msg = encodeURIComponent(`🙏 Namaste ${myData.name},\n\nAapka turn aa gaya hai! 🎯\nCycle: ${currentCycle}\nTurn: #${myIndex+1}\nAmount: ₹${totalMembers * 10}\n\nKripya apna payment collect karein.\n\nTeam BC Committee`);
-            whatsappLink.href = `https://wa.me/${phone}?text=${msg}`;
-            turnActions.style.display = 'flex';
-          } else {
-            const monthsLeft = myIndex - activeIdxFinal;
-            turnTitle.innerText = `📌 Position #${myIndex+1}`;
-            turnDetail.innerText = `Lagbhag ${monthsLeft} mahine baad aapka turn aayega.`;
-            document.getElementById('statMyStatus').innerText = `#${myIndex+1}`;
-            turnActions.style.display = 'none';
-            currentTurnData = null;
-          }
-        }
-
-        // ====== HISTORY ======
-        const historyTable = document.getElementById('historyTableBody');
-        historyTable.innerHTML = "";
-        myHistoryData = [];
-        let found = false;
-        Object.values(donations).forEach(item => {
-          if (item.userId === currentUserData.uid || item.userPhone === currentUserData.phone) {
-            found = true;
-            const statusClass = item.status === 'Approved' ? 'badge-received' : 'badge-pending';
-            myHistoryData.push(item);
-            historyTable.innerHTML += `
-              <tr>
-                <td>${item.month}</td>
-                <td>₹${item.amount}</td>
-                <td>${item.utr || '---'}</td>
-                <td><span class="badge ${statusClass}">${item.status}</span></td>
-              </tr>
-            `;
-          }
-        });
-        if (!found) historyTable.innerHTML = `<tr><td colspan="4" style="text-align:center;">📭 Koi record nahi</td></tr>`;
       });
-    }
 
-    // ====== PAYMENT SUBMIT ======
+      document.getElementById('statTotalBal').innerText = "₹" + totalBal;
+      document.getElementById('statTotalUsers').innerText = Object.keys(users).length;
+      document.getElementById('statPaidUsers').innerText = paidCount;
+      document.getElementById('statPendingUsers').innerText = pendingCount;
+      document.getElementById('statPeopleHelped').innerText = data.peopleHelpedCount || 0;
+    });
+
+    // Submit Payment
     document.getElementById('paymentForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
       const submitBtn = document.getElementById('submitBtn');
-      const amount = document.getElementById('amount').value.trim();
-      const utr = document.getElementById('utr').value.trim();
-
-      if (!amount || isNaN(amount) || Number(amount) < 1) {
-        showToast("❌ Kripya sahi amount daalein (minimum ₹1)", "error");
-        document.getElementById('amount').focus();
-        return;
-      }
-      if (!utr || utr.length < 4) {
-        showToast("❌ Kripya UTR number daalein (minimum 4 characters)", "error");
-        document.getElementById('utr').focus();
-        return;
-      }
-
       submitBtn.disabled = true;
-      submitBtn.textContent = '⏳ Submitting...';
+
+      const amount = Number(document.getElementById('amount').value);
+      const utr = document.getElementById('utr').value;
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const date = new Date();
+      const currentMonth = monthNames[date.getMonth()] + " " + date.getFullYear();
 
       try {
-        const amountNum = Number(amount);
-        const currentMonth = getCurrentMonth();
-
         const newRef = push(ref(db, 'donations'));
         await set(newRef, {
           userId: currentUserData.uid,
           userName: currentUserData.name || 'User',
           userPhone: currentUserData.phone || '',
-          amount: amountNum,
+          amount: amount,
           utr: utr,
           month: currentMonth,
           status: "Pending",
           timestamp: Date.now()
         });
 
-        showToast("✅ Payment proof submit ho gaya!", "success");
-        document.getElementById('amount').value = '';
-        document.getElementById('utr').value = '';
-        generatePaymentReceipt(currentUserData.name, amountNum, utr, currentMonth);
-        
+        alert("Payment Proof Submit ho gaya hai!");
+        this.reset();
+        document.getElementById('amount').value = 10;
+        loadUserHistory();
       } catch (err) {
-        showToast("❌ " + err.message, "error");
+        alert("Error: " + err.message);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = '✅ Submit Proof';
       }
     });
 
-    // ====== PDF RECEIPT ======
-    function generatePaymentReceipt(name, amount, utr, month) {
-      const receiptHTML = `
-        <div style="padding:30px; font-family:Arial; max-width:400px; margin:auto; border:2px solid #10b981; border-radius:10px; text-align:center;">
-          <h2 style="color:#059669;">💰 Payment Receipt</h2>
-          <hr style="border:1px dashed #10b981;">
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Amount:</strong> ₹${amount}</p>
-          <p><strong>UTR:</strong> ${utr}</p>
-          <p><strong>Month:</strong> ${month}</p>
-          <p><strong>Cycle:</strong> ${currentCycle}</p>
-          <hr style="border:1px dashed #10b981;">
-          <p style="font-size:0.8rem; color:#64748b;">✅ Payment Submitted!<br>Waiting for admin approval.</p>
-        </div>
-      `;
-      const win = window.open('', '_blank');
-      win.document.write(`
-        <html>
-          <head><title>Payment Receipt</title></head>
-          <body style="margin:0; padding:20px; display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f0f4f8;">
-            ${receiptHTML}
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>
-            <script>
-              setTimeout(() => {
-                const element = document.body.firstElementChild;
-                html2pdf().from(element).save('Receipt_${name}_${month}.pdf');
-              }, 500);
-            <\/script>
-          </body>
-        </html>
-      `);
-      win.document.close();
+    // Fetch User Personal History
+    function loadUserHistory() {
+      if(!currentUserData) return;
+      onValue(ref(db, 'donations'), (snapshot) => {
+        const tableBody = document.getElementById('historyTableBody');
+        tableBody.innerHTML = "";
+        if (!snapshot.exists()) {
+          tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Koi record nahi mila.</td></tr>`;
+          return;
+        }
+
+        let found = false;
+        snapshot.forEach(child => {
+          const item = child.val();
+          if (item.userId === currentUserData.uid || item.userPhone === currentUserData.phone) {
+            found = true;
+            tableBody.innerHTML += `
+              <tr>
+                <td>${item.month}</td>
+                <td>₹${item.amount}</td>
+                <td>${item.utr}</td>
+                <td><span class="status-badge status-${item.status}">${item.status}</span></td>
+              </tr>
+            `;
+          }
+        });
+
+        if (!found) {
+          tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Koi record nahi mila.</td></tr>`;
+        }
+      });
     }
 
-    window.generatePDF = function() {
-      if (!currentTurnData) return showToast("❌ Koi active turn nahi hai.", "error");
-      generatePaymentReceipt(
-        currentTurnData.name,
-        10,
-        'TURN-' + (new Date().getTime()),
-        new Date().toLocaleString('default', { month: 'short' }) + ' ' + new Date().getFullYear()
-      );
+    // ---- Stat History Modals ----
+    function fmtDate(ts) {
+      if (!ts) return '-';
+      const d = new Date(ts);
+      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function escapeHtml(str) {
+      return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    window.openStatModal = function(type) {
+      const overlay = document.getElementById('statModalOverlay');
+      const title = document.getElementById('statModalTitle');
+      const body = document.getElementById('statModalBody');
+      overlay.classList.add('active');
+      body.innerHTML = '<div class="modal-loading">Loading...</div>';
+
+      if (type === 'totalUsers') {
+        title.innerText = 'Total Users';
+        renderUsersList(body);
+      } else if (type === 'paidUsers') {
+        title.innerText = 'Paid Users History';
+        renderDonationsList(body, 'Approved');
+      } else if (type === 'pendingUsers') {
+        title.innerText = 'Pending Users History';
+        renderDonationsList(body, 'Pending');
+      } else if (type === 'peopleHelped') {
+        title.innerText = 'People Helped History';
+        renderHelpedList(body);
+      }
     };
 
-    // ====== EXCEL EXPORT ======
-    window.exportExcel = function() {
-      if (myHistoryData.length === 0) return showToast("❌ Koi history nahi hai!", "error");
-      let csv = "Month,Amount,UTR,Status\n";
-      myHistoryData.forEach(item => {
-        csv += `"${item.month}",${item.amount},"${item.utr || 'N/A'}","${item.status}"\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `History_${currentUserData.name}_${new Date().toISOString().slice(0,10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast("✅ Excel download ho raha hai!", "success");
+    window.closeStatModal = function() {
+      document.getElementById('statModalOverlay').classList.remove('active');
     };
 
-    window.switchTab = function(tabId, btn) {
-      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+    function renderUsersList(body) {
+      const entries = Object.entries(globalUsers);
+      if (entries.length === 0) {
+        body.innerHTML = '<div class="modal-empty">Koi user nahi mila.</div>';
+        return;
+      }
+      // Newest first
+      entries.sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
+      let rows = entries.map(([uid, u]) => `
+        <tr>
+          <td>${escapeHtml(u.name || '-')}</td>
+          <td>${escapeHtml(u.email || '-')}</td>
+          <td>${escapeHtml(u.phone || '-')}</td>
+          <td>${fmtDate(u.createdAt)}</td>
+        </tr>
+      `).join('');
+      body.innerHTML = `
+        <table>
+          <thead><tr><th>Naam</th><th>Email</th><th>Mobile</th><th>Joined</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function renderDonationsList(body, statusFilter) {
+      const entries = Object.entries(globalDonations).filter(([id, d]) => d.status === statusFilter);
+      if (entries.length === 0) {
+        body.innerHTML = '<div class="modal-empty">Koi record nahi mila.</div>';
+        return;
+      }
+      entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+      let rows = entries.map(([id, d]) => `
+        <tr>
+          <td>${escapeHtml(d.userName || 'User')}</td>
+          <td>₹${escapeHtml(d.amount)}</td>
+          <td>${escapeHtml(d.month || '-')}</td>
+          <td>${escapeHtml(d.utr || '-')}</td>
+          <td><span class="status-badge status-${d.status}">${d.status}</span></td>
+        </tr>
+      `).join('');
+      body.innerHTML = `
+        <table>
+          <thead><tr><th>Naam</th><th>Amount</th><th>Mahina</th><th>UTR</th><th>Status</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    function renderHelpedList(body) {
+      const entries = Object.entries(globalHelpedRecords);
+      if (entries.length === 0) {
+        body.innerHTML = `
+          <div class="modal-empty">
+            Detailed history abhi upload nahi hui hai.<br>
+            Total People Helped so far: <strong>${globalPeopleHelpedCount}</strong>
+          </div>
+        `;
+        return;
+      }
+      entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+      let rows = entries.map(([id, h]) => `
+        <tr>
+          <td>${escapeHtml(h.name || '-')}</td>
+          <td>${escapeHtml(h.reason || h.description || '-')}</td>
+          <td>₹${escapeHtml(h.amount || 0)}</td>
+          <td>${fmtDate(h.timestamp)}</td>
+        </tr>
+      `).join('');
+      body.innerHTML = `
+        <table>
+          <thead><tr><th>Naam</th><th>Wajah</th><th>Amount</th><th>Date</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    window.switchTab = function(tabId, btnElement) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
-      btn.classList.add('active');
+      btnElement.classList.add('active');
     };
   </script>
 </body>
