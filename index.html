@@ -632,14 +632,14 @@
         const monthlyTarget = (Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0));
         // Completed cycles show 0% progress (reset like new)
         const pct = isCompleted ? 0 : (monthlyTarget > 0 ? Math.min(100, Math.round((collected / monthlyTarget) * 100)) : 0);
-        const cardStyle = isCompleted ? 'opacity:0.55;border:1px solid #D1D5DB;' : '';
-        const fillColor = isCompleted ? '#D1D5DB' : '#5B54D6';
-        const statusTag = isCompleted ? '<span style="background:rgba(59,130,246,0.12);color:#1E40AF;font-size:0.65rem;padding:2px 8px;border-radius:6px;font-weight:700;margin-left:6px;">Completed</span>' : '';
+        const cardStyle = isCompleted ? 'background:linear-gradient(135deg, #ECFDF5, #D1FAE5);border:1px solid #6EE7B7;' : '';
+        const fillColor = isCompleted ? '#34D399' : '#5B54D6';
+        const statusTag = isCompleted ? '<span style="background:rgba(16,185,129,0.2);color:#065F46;font-size:0.65rem;padding:2px 8px;border-radius:6px;font-weight:700;margin-left:6px;">✅ Completed</span>' : '';
         const html = `
           <div class="cycle-card" onclick="openCycleDetail('${c.id}')" style="${cardStyle}">
             <div class="row1">
               <div class="amount">${(monthlyTarget).toLocaleString('en-IN')}${statusTag}</div>
-              <div class="pct" style="color:${isCompleted ? '#9B9B9B' : '#5B54D6'};">${pct}%</div>
+              <div class="pct" style="color:${isCompleted ? '#059669' : '#5B54D6'};">${pct}%</div>
             </div>
             <div class="meta">${fmtINR(c.monthlyAmount)} / Member • ${c.totalMembers} Members</div>
             <div class="bar"><div class="fill" style="width:${pct}%;background:${fillColor};"></div></div>
@@ -958,6 +958,15 @@
 
       if (!cycleId) return showToast('❌ Cycle select karein', 'error');
       if (!discount || discount < 1) return showToast('❌ Sahi discount amount daalein', 'error');
+
+      // Check: discount should be less than total monthly pot
+      const cycle = allData.cycles[cycleId];
+      if (cycle) {
+        const totalPot = Number(cycle.monthlyAmount || 0) * Number(cycle.totalMembers || 0);
+        if (discount >= totalPot) {
+          return showToast('❌ Discount ₹' + discount.toLocaleString('en-IN') + ' total pot ₹' + totalPot.toLocaleString('en-IN') + ' se kam hona chahiye!', 'error');
+        }
+      }
 
       btn.disabled = true;
       btn.innerText = '⏳ Submitting Bid...';
