@@ -389,10 +389,18 @@
           <div class="winner-details" id="highestBidderDetails">Discount: ₹0 | Pot: ₹0</div>
         </div>
 
+        <div id="payoutPreview" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:10px 14px;margin-bottom:16px;text-align:center;display:none;">
+          <span style="font-size:0.75rem;color:#6B6B6B;">Your Payout (Approx):</span>
+          <span id="payoutPreviewAmt" style="font-size:1.2rem;font-weight:800;color:#059669;display:block;">₹0</span>
+        </div>
+        <div id="payoutWarning" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:10px 14px;margin-bottom:16px;text-align:center;display:none;">
+          <span style="font-size:0.8rem;color:#EF4444;font-weight:700;">⚠️ Payout ₹0 hoga! Discount kam karein.</span>
+        </div>
+
         <form id="bidForm">
           <div class="auth-form-group">
             <label>🏷️ Discount Amount <span style="color:#EF4444;">*</span></label>
-            <input type="number" id="bidDiscount" placeholder="Kitna discount chhodenge?" min="1" required>
+            <input type="number" id="bidDiscount" placeholder="Kitna discount chhodenge?" min="1" required oninput="checkPayoutPreview()">
             <p class="small-note">💡 Sabse zyada discount = sabse badi boli.</p>
           </div>
           <button type="submit" class="btn-secondary" id="submitBidBtn">🔨 Submit Boli</button>
@@ -917,6 +925,8 @@
         table.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Cycle select karein</td></tr>`;
         nameEl.innerText = 'Koi cycle select nahi hai';
         detEl.innerText = '-';
+        document.getElementById('payoutPreview').style.display = 'none';
+        document.getElementById('payoutWarning').style.display = 'none';
         return;
       }
 
@@ -947,6 +957,45 @@
           else { statusCls = 'color:#F5A623;font-weight:600;'; statusLabel = '⏳ Pending'; }
           return `<tr><td>${b.userName || 'Unknown'}</td><td><strong style="color:#F5A623;">${fmtINR(b.discountAmount)}</strong></td><td>${fmtINR(p)}</td><td style="${statusCls}font-size:0.75rem;">${statusLabel}</td></tr>`;
         }).join('');
+      }
+
+      // Check payout preview after render
+      checkPayoutPreview();
+    };
+
+    // ============ PAYOUT PREVIEW ============
+    window.checkPayoutPreview = function() {
+      const cycleId = document.getElementById('auctionCycleSelect').value;
+      const discount = Number(document.getElementById('bidDiscount').value) || 0;
+      const previewEl = document.getElementById('payoutPreview');
+      const warningEl = document.getElementById('payoutWarning');
+      const previewAmt = document.getElementById('payoutPreviewAmt');
+      const submitBtn = document.getElementById('submitBidBtn');
+
+      if (!cycleId || discount <= 0) {
+        previewEl.style.display = 'none';
+        warningEl.style.display = 'none';
+        submitBtn.disabled = false;
+        submitBtn.innerText = '🔨 Submit Boli';
+        return;
+      }
+
+      const cycle = allData.cycles[cycleId];
+      if (!cycle) return;
+      const totalPot = Number(cycle.monthlyAmount || 0) * Number(cycle.totalMembers || 0);
+      const payout = Math.max(0, totalPot - discount);
+
+      if (payout <= 0) {
+        previewEl.style.display = 'none';
+        warningEl.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.innerText = '❌ Payout ₹0 — Boli Nahi Lag Sakti';
+      } else {
+        warningEl.style.display = 'none';
+        previewEl.style.display = 'block';
+        previewAmt.innerText = '₹' + payout.toLocaleString('en-IN');
+        submitBtn.disabled = false;
+        submitBtn.innerText = '🔨 Submit Boli';
       }
     };
 
