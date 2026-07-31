@@ -632,7 +632,7 @@
         const monthlyTarget = (Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0));
         // Completed cycles show 0% progress (reset like new)
         const pct = isCompleted ? 0 : (monthlyTarget > 0 ? Math.min(100, Math.round((collected / monthlyTarget) * 100)) : 0);
-        const cardStyle = isCompleted ? 'background:linear-gradient(135deg, #ECFDF5, #D1FAE5);border:1px solid #6EE7B7;' : '';
+        const cardStyle = isCompleted ? 'background:linear-gradient(135deg, #ECFDF5, #D1FAE5) !important;border:2px solid #6EE7B7 !important;' : '';
         const fillColor = isCompleted ? '#34D399' : '#5B54D6';
         const statusTag = isCompleted ? '<span style="background:rgba(16,185,129,0.2);color:#065F46;font-size:0.65rem;padding:2px 8px;border-radius:6px;font-weight:700;margin-left:6px;">✅ Completed</span>' : '';
         const html = `
