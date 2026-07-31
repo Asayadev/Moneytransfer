@@ -1000,6 +1000,69 @@
 
       // Check payout preview after render
       checkPayoutPreview();
+
+      // Check if user has a pending bid — disable button if yes
+      updateBidButtonState(cycleId, cycle);
+    };
+
+    // ============ CHECK USER PENDING BID + BATCH COMPLETE ============
+    window.updateBidButtonState = function(cycleId, cycle) {
+      const submitBtn = document.getElementById('submitBidBtn');
+      const discountInput = document.getElementById('bidDiscount');
+      if (!cycleId || !cycle) return;
+
+      // Check 1: Is batch complete? (all members paid)
+      const info = hasAllMembersPaid(cycle);
+      const batchJustComplete = (info.currentCount === 0 && info.batchesCompleted > 0);
+
+      // Check 2: Does user have a PENDING bid?
+      const uid = currentUserData?.uid;
+      const currentMonth = getCurrentMonth();
+      const userHasPendingBid = Object.values(allData.bids || {}).some(b =>
+        b.cycleId === cycleId && b.userId === uid && b.month === currentMonth && (!b.status || b.status === 'Active')
+      );
+
+      if (userHasPendingBid && !batchJustComplete) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = '⏳ Aapki Boli Pending Hai';
+        submitBtn.style.background = '#F5A623';
+        discountInput.disabled = true;
+        discountInput.placeholder = 'Pehle wali boli ka result wait karein...';
+        document.getElementById('payoutPreview').style.display = 'none';
+        document.getElementById('payoutWarning').style.display = 'none';
+        return 'pending';
+      }
+
+      if (userHasPendingBid && batchJustComplete) {
+        // Batch complete + user has pending bid — still block (admin needs to approve first)
+        submitBtn.disabled = true;
+        submitBtn.innerText = '⏳ Admin Approval Ka Wait Karein';
+        submitBtn.style.background = '#F5A623';
+        discountInput.disabled = true;
+        discountInput.placeholder = 'Admin se approval ka wait karein...';
+        document.getElementById('payoutPreview').style.display = 'none';
+        document.getElementById('payoutWarning').style.display = 'none';
+        return 'pending';
+      }
+
+      // Check 3: If NOT batch complete — don't allow bidding
+      if (!batchJustComplete) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = `🔒 Sabhi ${info.totalMembers} Members Ke Payment Ka Wait Karein`;
+        submitBtn.style.background = '#9B9B9B';
+        discountInput.disabled = true;
+        discountInput.placeholder = `Batch complete hone ka wait karein (${info.currentCount}/${info.totalMembers})...`;
+        document.getElementById('payoutPreview').style.display = 'none';
+        document.getElementById('payoutWarning').style.display = 'none';
+        return 'not-ready';
+      }
+
+      // Batch complete + no pending bid → allow!
+      submitBtn.innerText = '🔨 Submit Boli';
+      submitBtn.style.background = '';
+      discountInput.disabled = false;
+      discountInput.placeholder = 'Kitna discount chhodenge?';
+      return 'ready';
     };
 
     // ============ PAYOUT PREVIEW ============
@@ -1010,6 +1073,9 @@
       const warningEl = document.getElementById('payoutWarning');
       const previewAmt = document.getElementById('payoutPreviewAmt');
       const submitBtn = document.getElementById('submitBidBtn');
+
+      // Don't override if button is disabled due to pending bid or batch not complete
+      if (submitBtn.innerText !== '🔨 Submit Boli') return;
 
       if (!cycleId || discount <= 0) {
         previewEl.style.display = 'none';
