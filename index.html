@@ -428,9 +428,21 @@
         <div style="margin-bottom:10px;">
           <button class="btn-outline" onclick="exportExcel()">📊 Excel Download</button>
         </div>
+      </div>
+
+      <div class="section-h">🔨 Boli History</div>
+      <div class="card">
         <table>
-          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Type</th><th>Status</th></tr></thead>
-          <tbody id="historyTableBody"><tr><td colspan="5" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
+          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="bidHistoryTableBody"><tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="section-h">💰 Payment History</div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="paymentHistoryTableBody"><tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1155,15 +1167,18 @@
 
     // ============ HISTORY ============
     function renderHistory() {
-      const table = document.getElementById('historyTableBody');
-      myHistoryData = [];
+      const bidTable = document.getElementById('bidHistoryTableBody');
+      const paymentTable = document.getElementById('paymentHistoryTableBody');
       const cycles = getCyclesArray();
+
+      const myPayments = [];
+      const myBids = [];
 
       // Payments made by this user
       cycles.forEach(c => {
         Object.entries(c.payments || {}).forEach(([pid, p]) => {
           if (p.userId === currentUserData.uid || p.userPhone === currentUserData.phone) {
-            myHistoryData.push({ ...p, cycleName: c.name, recordType: 'payment' });
+            myPayments.push({ ...p, cycleName: c.name, recordType: 'payment' });
           }
         });
       });
@@ -1172,7 +1187,7 @@
       Object.values(allData.bids || {}).forEach(b => {
         if (b.userId === currentUserData.uid || b.userPhone === currentUserData.phone) {
           const cycle = allData.cycles[b.cycleId];
-          myHistoryData.push({
+          myBids.push({
             cycleName: cycle ? cycle.name : '-',
             month: b.month,
             amount: b.discountAmount,
@@ -1183,19 +1198,30 @@
         }
       });
 
-      myHistoryData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      myPayments.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      myBids.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-      if (myHistoryData.length === 0) {
-        table.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi record nahi</td></tr>`;
-        return;
+      myHistoryData = [...myBids, ...myPayments];
+
+      // Render Boli table
+      if (myBids.length === 0) {
+        bidTable.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi boli nahi</td></tr>`;
+      } else {
+        bidTable.innerHTML = myBids.map(p => {
+          return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td><span class="turn-badge current">${p.status}</span></td></tr>`;
+        }).join('');
       }
-      table.innerHTML = myHistoryData.map(p => {
-        const isBid = p.recordType === 'bid';
-        const s = p.status || 'Pending';
-        const cls = isBid ? 'current' : (s === 'Approved' ? 'received' : 'pending');
-        const typeLbl = isBid ? '🔨 Boli' : '💰 Payment';
-        return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td>${typeLbl}</td><td><span class="turn-badge ${cls}">${s}</span></td></tr>`;
-      }).join('');
+
+      // Render Payment table
+      if (myPayments.length === 0) {
+        paymentTable.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi record nahi</td></tr>`;
+      } else {
+        paymentTable.innerHTML = myPayments.map(p => {
+          const s = p.status || 'Pending';
+          const cls = s === 'Approved' ? 'received' : 'pending';
+          return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td><span class="turn-badge ${cls}">${s}</span></td></tr>`;
+        }).join('');
+      }
     }
 
     window.exportExcel = function() {
