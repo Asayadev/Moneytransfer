@@ -1,215 +1,508 @@
+
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Community Help Platform</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>BC Committee - Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #f4f7f6; color: #333; padding-bottom: 40px; }
-    header { background: #10b981; color: white; text-align: center; padding: 20px 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; }
-    header h1 { font-size: 1.8rem; margin-bottom: 5px; }
-    .user-info-bar { background: #047857; color: white; padding: 8px 15px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center; }
-    .user-info-bar button { background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
-    
-    /* Stats Grid */
-    .stats-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin: 15px; }
-    .stat-card { background: white; padding: 12px; border-radius: 8px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .stat-card h3 { font-size: 1.1rem; color: #10b981; margin-bottom: 2px; }
-    .stat-card p { font-size: 0.75rem; color: #666; font-weight: 600; }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif; }
+    body { background: #F4F5F9; color: #1A1A1A; min-height: 100vh; padding-bottom: 20px; -webkit-tap-highlight-color: transparent; }
+    .app-container { max-width: 480px; margin: 0 auto; background: #F4F5F9; min-height: 100vh; position: relative; }
 
-    nav { display: flex; justify-content: center; background: #059669; }
-    nav button { background: none; border: none; color: white; padding: 12px 15px; font-size: 0.95rem; cursor: pointer; transition: 0.3s; }
-    nav button:hover, nav button.active { background: #047857; font-weight: bold; }
-    
-    .container { max-width: 600px; margin: 20px auto; padding: 0 15px; }
-    .card { background: white; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    h2 { color: #059669; margin-bottom: 15px; font-size: 1.2rem; border-bottom: 2px solid #ecfdf5; padding-bottom: 5px; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    
-    .bank-box { background: #ecfdf5; border: 1px dashed #10b981; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-    .bank-box p { margin-bottom: 8px; font-size: 0.9rem; }
-    
-    .form-group { margin-bottom: 12px; }
-    label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85rem; }
-    input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem; }
-    button.btn-submit { width: 100%; background: #10b981; color: white; border: none; padding: 12px; font-size: 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 5px; }
-    button.btn-submit:hover { background: #059669; }
-    
-    .auth-toggle { text-align: center; margin-top: 10px; font-size: 0.85rem; }
-    .auth-toggle span { color: #3b82f6; cursor: pointer; text-decoration: underline; }
+    /* ===== HEADER ===== */
+    .app-header { background: #5B54D6; color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(91, 84, 214, 0.2); }
+    .app-header .left { display: flex; align-items: center; gap: 14px; }
+    .app-header .back-btn { background: none; border: none; color: white; cursor: pointer; padding: 4px; opacity: 0.9; display: flex; align-items: center; }
+    .app-header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; }
+    .app-header .actions { display: flex; align-items: center; gap: 14px; opacity: 0.9; }
+    .app-header .actions button { background: none; border: none; color: white; cursor: pointer; padding: 4px; display: flex; align-items: center; }
+    .app-header .actions button:hover { opacity: 0.7; }
 
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
-    th { background: #f9fafb; }
-    .status-badge { padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; }
-    .status-Approved { background: #d1fae5; color: #065f46; }
-    .status-Pending { background: #fef3c7; color: #92400e; }
+    /* ===== PAGE CONTENT ===== */
+    .page { padding: 16px; display: none; animation: fadeIn 300ms ease-out; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Clickable stat cards */
-    .stat-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; position: relative; }
-    .stat-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
-    .stat-card.clickable:active { transform: translateY(0); }
-    .stat-card.clickable::after { content: "›"; position: absolute; top: 6px; right: 8px; font-size: 0.9rem; color: #a7f3d0; font-weight: bold; }
+    /* ===== CARDS ===== */
+    .card { background: white; border-radius: 20px; border: 1px solid #F0F0F0; padding: 20px; margin-bottom: 16px; transition: all 0.2s ease; }
+    .card.clickable { cursor: pointer; }
+    .card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
 
-    /* Modal for stat history */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 1000; align-items: flex-end; justify-content: center; }
-    .modal-overlay.active { display: flex; }
-    .modal-box { background: #f4f7f6; width: 100%; max-width: 600px; max-height: 85vh; border-radius: 16px 16px 0 0; overflow: hidden; display: flex; flex-direction: column; animation: slideUp 0.25s ease-out; }
-    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    .modal-header { background: #10b981; color: white; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-    .modal-header h3 { font-size: 1.05rem; }
-    .modal-header button { background: rgba(255,255,255,0.2); border: none; color: white; width: 28px; height: 28px; border-radius: 50%; font-size: 1rem; cursor: pointer; line-height: 1; }
-    .modal-body { padding: 15px 18px; overflow-y: auto; }
-    .modal-body table { background: white; border-radius: 8px; overflow: hidden; }
-    .modal-loading, .modal-empty { text-align: center; padding: 20px; color: #666; font-size: 0.9rem; }
+    /* ===== DONUT CHART CARD ===== */
+    .donut-card { text-align: center; }
+    .donut-card h2 { font-size: 1.15rem; font-weight: 700; color: #1A1A1A; margin-bottom: 12px; }
+    .donut-wrap { position: relative; height: 220px; margin: 0 auto; max-width: 240px; }
+    .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+    .donut-center .lbl { font-size: 0.85rem; color: #6B6B6B; font-weight: 500; }
+    .donut-center .val { font-size: 1.8rem; font-weight: 800; color: #1A1A1A; }
+    .donut-legend { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 8px; }
+    .donut-legend .item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #1A1A1A; }
+    .donut-legend .dot { width: 12px; height: 12px; border-radius: 3px; }
 
-    /* Login improvements */
-    .password-wrap { position: relative; }
-    .password-wrap input { padding-right: 42px; }
-    .toggle-eye { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 0.85rem; color: #059669; user-select: none; }
-    .field-error { color: #ef4444; font-size: 0.75rem; margin-top: 3px; display: none; }
-    .forgot-pass { text-align: right; font-size: 0.8rem; margin: -6px 0 12px; }
-    .forgot-pass span { color: #3b82f6; cursor: pointer; text-decoration: underline; }
-    button.btn-submit:disabled { background: #9ca3af; cursor: not-allowed; }
-    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.5); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ===== TOTAL POT CARD ===== */
+    .pot-card { background: #5B54D6; color: white; border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(91,84,214,0.25); }
+    .pot-icon { width: 52px; height: 52px; background: rgba(255,255,255,0.18); border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.6rem; }
+    .pot-card .lbl { font-size: 0.9rem; opacity: 0.95; font-weight: 500; }
+    .pot-card .amount { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+
+    /* ===== SECTION HEADING ===== */
+    .section-h { font-size: 1.1rem; font-weight: 700; color: #1A1A1A; margin: 20px 4px 12px; }
+
+    /* ===== CYCLE PROGRESS CARDS ===== */
+    .cycle-card { background: white; border-radius: 20px; border: 1px solid #F0F0F0; padding: 20px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s ease; animation: slideUp 300ms ease-out; }
+    .cycle-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .cycle-card .row1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .cycle-card .amount { font-size: 1.8rem; font-weight: 800; color: #1A1A1A; }
+    .cycle-card .pct { font-size: 1.15rem; font-weight: 700; color: #5B54D6; }
+    .cycle-card .meta { font-size: 0.9rem; color: #6B6B6B; margin-bottom: 12px; }
+    .cycle-card .bar { width: 100%; height: 8px; background: #F0F0F0; border-radius: 20px; overflow: hidden; }
+    .cycle-card .bar .fill { height: 100%; background: #5B54D6; border-radius: 20px; transition: width 0.6s ease; }
+    .cycle-card .row3 { display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.85rem; }
+    .cycle-card .collected { color: #16A34A; font-weight: 600; }
+    .cycle-card .target { color: #6B6B6B; }
+
+    /* ===== QUICK ACTIONS ===== */
+    .quick-action { background: white; border-radius: 20px; border: 1px solid #F0F0F0; padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.2s ease; margin-bottom: 10px; width: 100%; }
+    .quick-action:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+    .quick-action .icon-box { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+    .quick-action .label { flex: 1; text-align: left; font-size: 1rem; font-weight: 600; color: #1A1A1A; }
+    .quick-action .arrow { color: #9B9B9B; font-size: 1.2rem; }
+
+    /* ===== MANAGE CYCLE ITEMS ===== */
+    .manage-item { background: white; border-radius: 20px; border: 1px solid #F0F0F0; padding: 18px; margin-bottom: 12px; animation: slideUp 300ms ease-out; }
+    .manage-item .top { display: flex; align-items: start; justify-content: space-between; margin-bottom: 12px; }
+    .manage-item .amount { font-size: 1.6rem; font-weight: 800; color: #1A1A1A; }
+    .manage-item .name { font-size: 0.8rem; color: #9B9B9B; margin-top: 2px; }
+    .status-badge { font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 8px; border: 1.5px solid; cursor: pointer; text-transform: uppercase; letter-spacing: 0.3px; }
+    .status-badge.active { background: rgba(74, 222, 128, 0.15); color: #166534; border-color: rgba(74, 222, 128, 0.4); }
+    .status-badge.completed { background: rgba(59, 130, 246, 0.15); color: #1E40AF; border-color: rgba(59, 130, 246, 0.4); }
+    .status-badge.paused { background: rgba(245, 158, 11, 0.15); color: #92400E; border-color: rgba(245, 158, 11, 0.4); }
+    .manage-item .mid { display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #F0F0F0; margin-bottom: 12px; font-size: 0.9rem; color: #6B6B6B; }
+    .manage-item .mid .amt { font-weight: 700; color: #1A1A1A; }
+    .manage-item .bot { display: flex; align-items: center; justify-content: space-between; }
+    .manage-item .members { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 600; color: #5B54D6; }
+    .manage-item .delete-btn { background: none; border: none; padding: 8px; border-radius: 8px; cursor: pointer; color: #FF6B6B; transition: background 0.2s; }
+    .manage-item .delete-btn:hover { background: rgba(255,107,107,0.1); }
+
+    /* ===== FAB ===== */
+    .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 18px; background: #B8A9E8; color: #1A1A1A; border: none; box-shadow: 0 4px 16px rgba(184,169,232,0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 400; transition: all 0.2s; z-index: 40; }
+    .fab:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(184,169,232,0.7); }
+    @media (min-width: 480px) { .fab { right: calc(50% - 240px + 24px); } }
+
+    /* ===== NEW CYCLE FORM ===== */
+    .form-field { margin-bottom: 20px; }
+    .form-field .label { font-size: 0.85rem; color: #6B6B6B; font-weight: 500; margin-bottom: 4px; }
+    .form-field input[type="text"], .form-field input[type="number"], .form-field input[type="date"] {
+      width: 100%; background: transparent; border: none; border-bottom: 1px solid #E0E0E0; padding: 8px 2px;
+      font-size: 1.4rem; font-weight: 700; color: #1A1A1A; outline: none; transition: border-color 0.2s;
+    }
+    .form-field input:focus { border-color: #5B54D6; }
+    .form-field input::placeholder { color: #9B9B9B; font-weight: 400; font-size: 1.1rem; }
+    .form-field.big input { font-size: 1.4rem; }
+
+    .date-field { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #E0E0E0; padding: 12px 0; margin-bottom: 20px; }
+    .date-field .info { flex: 1; }
+    .date-field .lbl { font-size: 1.1rem; color: #1A1A1A; font-weight: 500; }
+    .date-field .val { font-size: 0.9rem; color: #6B6B6B; margin-top: 2px; }
+    .date-field .cal-btn { cursor: pointer; color: #5B54D6; font-size: 1.4rem; padding: 4px; display: flex; align-items: center; }
+    .date-field input[type="date"] { position: absolute; opacity: 0; pointer-events: none; }
+
+    .summary-card { background: rgba(91,84,214,0.05); border: 1px solid rgba(91,84,214,0.2); border-radius: 16px; padding: 16px; margin-bottom: 24px; }
+    .summary-card .lbl { font-size: 0.7rem; color: #6B6B6B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .summary-card .val { font-size: 1.6rem; font-weight: 800; color: #5B54D6; margin-top: 2px; }
+    .summary-card .hint { font-size: 0.75rem; color: #6B6B6B; margin-top: 4px; }
+
+    .primary-btn { width: 100%; padding: 15px; background: #5B54D6; color: white; border: none; border-radius: 100px; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(91,84,214,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .primary-btn:hover { background: #4A44C0; box-shadow: 0 4px 16px rgba(91,84,214,0.4); }
+    .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ===== AUTH ===== */
+    .auth-container { max-width: 400px; margin: 40px auto; padding: 0 16px; }
+    .auth-card { background: white; border-radius: 20px; padding: 28px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #F0F0F0; }
+    .auth-card h2 { color: #5B54D6; font-size: 1.4rem; margin-bottom: 20px; text-align: center; font-weight: 700; }
+    .auth-form-group { margin-bottom: 16px; position: relative; }
+    .auth-form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; color: #1A1A1A; }
+    .auth-form-group input { width: 100%; padding: 12px 14px; border: 1px solid #E0E0E0; border-radius: 12px; font-size: 0.95rem; background: white; transition: border-color 0.2s; }
+    .auth-form-group input:focus { outline: none; border-color: #5B54D6; }
+    .password-toggle { position: absolute; right: 12px; top: 36px; cursor: pointer; font-size: 1.2rem; background: none; border: none; color: #9B9B9B; }
+    .auth-toggle { text-align: center; margin-top: 16px; font-size: 0.9rem; color: #6B6B6B; }
+    .auth-toggle span { color: #5B54D6; cursor: pointer; font-weight: 600; }
+
+    /* ===== TABS (Cycle Detail) ===== */
+    .tabs { display: flex; gap: 6px; background: rgba(240,240,240,0.6); border-radius: 100px; padding: 4px; width: fit-content; margin: 0 auto 16px; }
+    .tabs button { background: transparent; border: none; padding: 8px 16px; border-radius: 100px; font-size: 0.85rem; font-weight: 600; color: #6B6B6B; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .tabs button.active { background: white; color: #1A1A1A; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+
+    /* ===== MEMBER LIST ===== */
+    .member-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #F0F0F0; transition: background 0.15s; }
+    .member-row:last-child { border-bottom: none; }
+    .member-row:hover { background: #FAFAF8; }
+    .member-row.current { background: rgba(91,84,214,0.05); }
+    .member-pos { width: 36px; height: 36px; border-radius: 50%; background: rgba(184,169,232,0.2); color: #5B21B6; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+    .member-info { flex: 1; min-width: 0; }
+    .member-name { font-size: 0.9rem; font-weight: 600; color: #1A1A1A; }
+    .member-phone { font-size: 0.75rem; color: #9B9B9B; }
+    .turn-badge { font-size: 0.65rem; font-weight: 700; padding: 4px 10px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.3px; border: 1px solid; }
+    .turn-badge.received { background: rgba(74,222,128,0.15); color: #166534; border-color: rgba(74,222,128,0.4); }
+    .turn-badge.current { background: rgba(59,130,246,0.15); color: #1E40AF; border-color: rgba(59,130,246,0.4); }
+    .turn-badge.pending { background: rgba(245,158,11,0.15); color: #92400E; border-color: rgba(245,158,11,0.4); }
+
+    /* ===== MINI STAT ===== */
+    .mini-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #F0F0F0; }
+    .mini-stat { text-align: center; }
+    .mini-stat .ico { width: 32px; height: 32px; border-radius: 10px; margin: 0 auto 4px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+    .mini-stat .val { font-size: 0.9rem; font-weight: 700; color: #1A1A1A; }
+    .mini-stat .lbl { font-size: 0.65rem; color: #9B9B9B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty { padding: 40px 20px; text-align: center; }
+    .empty .emoji { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+    .empty .text { font-size: 0.9rem; color: #9B9B9B; }
+    .empty .hint { font-size: 0.75rem; color: #9B9B9B; margin-top: 4px; }
+
+    /* ===== TOAST ===== */
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1A1A1A; color: white; padding: 10px 20px; border-radius: 100px; font-weight: 600; z-index: 9999; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.3); max-width: 90%; font-size: 0.9rem; }
+    .toast.success { background: #16A34A; }
+    .toast.error { background: #EF4444; }
+
+    /* ===== PAYMENT / BID / HISTORY (existing features) ===== */
+    .bank-box { background: #F8FAFC; border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 0.9rem; border: 1px solid #E9EDF2; }
+    .bank-box p { margin: 4px 0; }
+    .auction-winner-box { background: linear-gradient(135deg, #FEF3C7, #FDE68A); border: 2px solid #F59E0B; border-radius: 16px; padding: 14px; margin-bottom: 16px; text-align: center; }
+    .auction-winner-box h4 { color: #92400E; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .auction-winner-box .winner-name { font-size: 1.15rem; font-weight: 700; color: #78350F; margin: 4px 0; }
+    .auction-winner-box .winner-details { font-size: 0.8rem; color: #92400E; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th, td { padding: 10px 8px; border-bottom: 1px solid #F0F0F0; text-align: left; }
+    th { font-size: 0.7rem; text-transform: uppercase; color: #9B9B9B; font-weight: 600; }
+    .btn-outline { padding: 10px 18px; border: 1px solid #E0E0E0; background: white; color: #1A1A1A; border-radius: 100px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
+    .btn-outline:hover { border-color: #5B54D6; color: #5B54D6; }
+    .btn-secondary { padding: 10px 18px; background: #F5A623; color: white; border: none; border-radius: 100px; font-weight: 700; font-size: 0.85rem; cursor: pointer; width: 100%; margin-top: 8px; transition: all 0.2s; }
+    .btn-secondary:hover { background: #E09215; }
+    .small-note { font-size: 0.75rem; color: #9B9B9B; margin-top: 4px; }
+
+    /* ===== CYCLE SELECTOR (Pay/Bid dropdown) ===== */
+    .cycle-select { width: 100%; padding: 12px 14px; border: 1px solid #E0E0E0; border-radius: 12px; font-size: 0.95rem; background: white; margin-bottom: 12px; }
   </style>
 </head>
 <body>
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
 
-  <header>
-    <h1> Community Help</h1>
-    <p>Sabka Thoda Sabki Badi Madad</p>
-  </header>
-
-  <!-- User Bar -->
-  <div id="userBar" class="user-info-bar" style="display:none;">
-    <span>Welcome, <strong id="userEmailDisplay">User</strong></span>
-    <button onclick="logoutUser()">Logout</button>
-  </div>
-
-  <!-- Realtime Overall Stats -->
-  <div class="stats-container">
-    <div class="stat-card"><h3 id="statTotalBal">₹0</h3><p>Total Balance</p></div>
-    <div class="stat-card clickable" onclick="openStatModal('totalUsers')"><h3 id="statTotalUsers">0</h3><p>Total Users</p></div>
-    <div class="stat-card clickable" onclick="openStatModal('paidUsers')"><h3 id="statPaidUsers">0</h3><p>Paid Users</p></div>
-    <div class="stat-card clickable" onclick="openStatModal('pendingUsers')"><h3 id="statPendingUsers">0</h3><p>Pending</p></div>
-    <div class="stat-card clickable" onclick="openStatModal('peopleHelped')"><h3 id="statPeopleHelped">0</h3><p>People Helped</p></div>
-  </div>
-
-  <!-- Stat History Modal -->
-  <div id="statModalOverlay" class="modal-overlay" onclick="if(event.target===this) closeStatModal()">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3 id="statModalTitle">History</h3>
-        <button onclick="closeStatModal()">✕</button>
-      </div>
-      <div class="modal-body" id="statModalBody">
-        <div class="modal-loading">Loading...</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Navigation -->
-  <nav id="mainNav" style="display:none;">
-    <button class="nav-btn active" onclick="switchTab('pay-tab', this)">Payment</button>
-    <button class="nav-btn" onclick="switchTab('history-tab', this)">Mera History</button>
-  </nav>
-
-  <div class="container">
-
-    <!-- AUTH SECTION (LOGIN / REGISTER) -->
-    <div id="authSection" class="card">
-      <h2 id="authTitle">Gmail & Password Login</h2>
+  <!-- ============ AUTH SECTION ============ -->
+  <div id="authSection" class="auth-container" style="display:none;">
+    <div class="auth-card">
+      <h2 id="authTitle">🔐 Login</h2>
       <form id="authForm">
-        <div class="form-group" id="nameGroup" style="display: none;">
-          <label for="authName">Aapka Pura Naam:</label>
-          <input type="text" id="authName" placeholder="Pura naam enter karein">
+        <div class="auth-form-group" id="nameGroup" style="display: none;">
+          <label>👤 Pura Naam</label>
+          <input type="text" id="authName" placeholder="Jaise: Rajesh Kumar">
         </div>
-        <div class="form-group">
-          <label for="authEmail">Gmail ID:</label>
+        <div class="auth-form-group">
+          <label>📧 Gmail ID</label>
           <input type="email" id="authEmail" placeholder="example@gmail.com" required>
         </div>
-        <div class="form-group">
-          <label for="authPhone">Mobile Number:</label>
-          <input type="tel" id="authPhone" placeholder="10-digit Mobile Number" required pattern="[0-9]{10}">
+        <div class="auth-form-group">
+          <label>📱 Mobile Number</label>
+          <input type="tel" id="authPhone" placeholder="9876543210" required pattern="[0-9]{10}">
         </div>
-        <div class="form-group">
-          <label for="authPassword">Password:</label>
-          <div class="password-wrap">
-            <input type="password" id="authPassword" placeholder="Minimum 6 characters" required minlength="6">
-            <span class="toggle-eye" id="pwToggle" onclick="togglePasswordView()">Show</span>
-          </div>
-          <div class="field-error" id="authError"></div>
+        <div class="auth-form-group">
+          <label>🔑 Password</label>
+          <input type="password" id="authPassword" placeholder="●●●●●●" required minlength="6">
+          <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
         </div>
-        <p class="forgot-pass" id="forgotPassBlock"><span onclick="handleForgotPassword()">Password bhool gaye?</span></p>
-        <button type="submit" class="btn-submit" id="authBtn">Login Karein</button>
+        <button type="submit" class="primary-btn" id="authBtn" style="margin-top:8px;">Login</button>
       </form>
-      <p class="auth-toggle" id="authToggleText">Account nahi hai? <span onclick="toggleAuthMode(true)">Naya Account Banayein</span></p>
+      <p class="auth-toggle" id="authToggleText">Naya account? <span onclick="toggleAuthMode(true)">Register karein</span></p>
+    </div>
+  </div>
+
+  <!-- ============ APP SECTION ============ -->
+  <div id="appSection" class="app-container" style="display:none;">
+
+    <!-- ===== DASHBOARD PAGE ===== -->
+    <div id="page-dashboard" class="page active">
+      <div class="app-header" style="margin: -16px -16px 16px;">
+        <div class="left">
+          <h1>Dashboard</h1>
+        </div>
+        <div class="actions">
+          <button title="Profile" onclick="showToast('👋 ' + (currentUserData?.name || 'User'), 'success')">👤</button>
+          <button title="Settings" onclick="showToast('⚙️ Settings coming soon', 'success')">⚙️</button>
+          <button title="Logout" onclick="logoutUser()">🚪</button>
+        </div>
+      </div>
+
+      <!-- Cycle Status Donut -->
+      <div class="card donut-card">
+        <h2>Cycle Status</h2>
+        <div class="donut-wrap">
+          <canvas id="cycleStatusChart"></canvas>
+          <div class="donut-center">
+            <div class="lbl">Active</div>
+            <div class="val" id="donutActiveVal">0</div>
+          </div>
+        </div>
+        <div class="donut-legend">
+          <div class="item"><span class="dot" style="background:#3B82F6;"></span>Active</div>
+          <div class="item"><span class="dot" style="background:#4ADE80;"></span>Completed</div>
+        </div>
+      </div>
+
+      <!-- Total Monthly Pot -->
+      <div class="pot-card">
+        <div class="pot-icon">💰</div>
+        <div>
+          <div class="lbl">Total Monthly Pot</div>
+          <div class="amount" id="totalMonthlyPot">₹0</div>
+        </div>
+      </div>
+
+      <!-- Collection Progress -->
+      <div class="section-h">Collection Progress</div>
+      <div id="collectionProgressList"></div>
+
+      <!-- Quick Actions -->
+      <div class="section-h">Quick Actions</div>
+      <button class="quick-action" onclick="navigate('manage')">
+        <div class="icon-box" style="background:rgba(74,222,128,0.2);">🐷</div>
+        <span class="label">Manage Cycles</span>
+        <span class="arrow">›</span>
+      </button>
+      <button class="quick-action" onclick="navigate('pay')">
+        <div class="icon-box" style="background:rgba(245,166,35,0.2);">💳</div>
+        <span class="label">Pay Now</span>
+        <span class="arrow">›</span>
+      </button>
+      <button class="quick-action" onclick="navigate('auction')">
+        <div class="icon-box" style="background:rgba(184,169,232,0.25);">🏷️</div>
+        <span class="label">Boli / Auction</span>
+        <span class="arrow">›</span>
+      </button>
+      <button class="quick-action" onclick="navigate('history')">
+        <div class="icon-box" style="background:rgba(78,205,196,0.2);">📜</div>
+        <span class="label">My History</span>
+        <span class="arrow">›</span>
+      </button>
     </div>
 
-    <!-- MAIN APP CONTENT (Login ke baad dikhega) -->
-    <div id="appSection" style="display:none;">
-      
-      <!-- PAYMENT TAB -->
-      <section id="pay-tab" class="tab-content active">
-        <div class="card">
-          <h2>Direct Bank / UPI Transfer</h2>
-          <div class="bank-box">
-            <p><strong>UPI ID:</strong> <span id="dispUpi">Loading...</span></p>
-            <p><strong>Account Name:</strong> <span id="dispAccName">Loading...</span></p>
-            <p><strong>Account No:</strong> <span id="dispAccNo">Loading...</span></p>
-            <p><strong>IFSC Code:</strong> <span id="dispIfsc">Loading...</span></p>
-          </div>
-
-          <form id="paymentForm">
-            <div class="form-group">
-              <label for="amount">Contribution Amount (₹):</label>
-              <input type="number" id="amount" value="10" min="10" required>
-            </div>
-
-            <div class="form-group">
-              <label for="utr">12-Digit UTR / Reference ID:</label>
-              <input type="text" id="utr" maxlength="12" minlength="12" placeholder="GPay/PhonePe UTR Number" required>
-            </div>
-
-            <button type="submit" class="btn-submit" id="submitBtn">Payment Proof Submit Karein</button>
-          </form>
+    <!-- ===== MANAGE CYCLES PAGE ===== -->
+    <div id="page-manage" class="page">
+      <div class="app-header" style="margin: -16px -16px 16px;">
+        <div class="left">
+          <button class="back-btn" onclick="navigate('dashboard')">←</button>
+          <h1>Manage Cycles</h1>
         </div>
-      </section>
+      </div>
+      <div id="manageCyclesList"></div>
+      <button class="fab" onclick="navigate('new-cycle')" title="Add new cycle">+</button>
+    </div>
 
-      <!-- HISTORY TAB -->
-      <section id="history-tab" class="tab-content">
-        <div class="card">
-          <h2>Mera Contribution History</h2>
+    <!-- ===== NEW CYCLE PAGE ===== -->
+    <div id="page-new-cycle" class="page">
+      <div class="app-header" style="margin: -16px -16px 16px;">
+        <div class="left">
+          <button class="back-btn" onclick="navigate('manage')">←</button>
+          <h1>New Cycle</h1>
+        </div>
+      </div>
+      <form id="newCycleForm" style="padding: 4px;">
+        <div class="form-field">
+          <input type="text" id="ncName" placeholder="Cycle Name (e.g., Batch A 2026)">
+        </div>
+
+        <div class="date-field">
+          <div class="info">
+            <div class="lbl">Start Date</div>
+            <div class="val" id="ncStartDateDisplay">Select date</div>
+          </div>
+          <label class="cal-btn" style="position:relative;">
+            📅
+            <input type="date" id="ncStartDate" onchange="updateStartDateDisplay()" style="position:absolute;inset:0;opacity:0;cursor:pointer;">
+          </label>
+        </div>
+
+        <div class="form-field">
+          <div class="label">Monthly Amount (₹)</div>
+          <input type="number" id="ncMonthlyAmount" min="1" value="2500" oninput="updateSummary()" required>
+        </div>
+
+        <div class="form-field">
+          <div class="label">Total Members</div>
+          <input type="number" id="ncTotalMembers" min="2" value="20" oninput="updateSummary()" required>
+        </div>
+
+        <div class="form-field">
+          <div class="label">Duration (Months)</div>
+          <input type="number" id="ncDuration" min="1" value="20" oninput="updateSummary()" required>
+        </div>
+
+        <div class="summary-card">
+          <div class="lbl">Total Pot</div>
+          <div class="val" id="ncSummaryVal">₹50000</div>
+          <div class="hint" id="ncSummaryHint">20 members × ₹2500 × 20 months</div>
+        </div>
+
+        <button type="submit" class="primary-btn" id="ncSubmitBtn">Create Cycle</button>
+      </form>
+    </div>
+
+    <!-- ===== CYCLE DETAIL PAGE ===== -->
+    <div id="page-cycle-detail" class="page">
+      <div class="app-header" style="margin: -16px -16px 16px;">
+        <div class="left">
+          <button class="back-btn" onclick="navigate('manage')">←</button>
+          <h1 id="cdTitle">Cycle</h1>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:start;">
+          <div>
+            <div style="font-size:0.7rem;color:#9B9B9B;font-weight:600;text-transform:uppercase;">Total Pot</div>
+            <div style="font-size:1.7rem;font-weight:800;color:#1A1A1A;" id="cdTotalPot">₹0</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.7rem;color:#9B9B9B;font-weight:600;text-transform:uppercase;">Progress</div>
+            <div style="font-size:1.7rem;font-weight:800;color:#5B54D6;" id="cdProgress">0%</div>
+          </div>
+        </div>
+        <div class="bar" style="width:100%;height:8px;background:#F0F0F0;border-radius:20px;overflow:hidden;margin-top:8px;">
+          <div id="cdProgressFill" style="height:100%;background:#5B54D6;border-radius:20px;transition:width 0.6s ease;width:0%;"></div>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <div class="ico" style="background:rgba(245,166,35,0.15);">💰</div>
+            <div class="val" id="cdMonthly">₹0</div>
+            <div class="lbl">Monthly</div>
+          </div>
+          <div class="mini-stat">
+            <div class="ico" style="background:rgba(184,169,232,0.2);">👥</div>
+            <div class="val" id="cdMembersCount">0</div>
+            <div class="lbl">Members</div>
+          </div>
+          <div class="mini-stat">
+            <div class="ico" style="background:rgba(78,205,196,0.2);">📅</div>
+            <div class="val" id="cdDuration">0</div>
+            <div class="lbl">Months</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="active" onclick="switchDetailTab('members', this)">👥 Members</button>
+        <button onclick="switchDetailTab('payments', this)">💳 Payments</button>
+      </div>
+
+      <div class="card" style="padding: 0;">
+        <div id="cdMembersList"></div>
+        <div id="cdPaymentsList" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- ===== PAYMENT PAGE ===== -->
+    <div id="page-pay" class="page">
+      <div class="app-header" style="margin: -16px -16px 16px;">
+        <div class="left">
+          <button class="back-btn" onclick="navigate('dashboard')">←</button>
+          <h1>Pay Now</h1>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:0.85rem;color:#6B6B6B;margin-bottom:6px;font-weight:500;">Select Cycle</div>
+        <select id="paymentCycleSelect" class="cycle-select"></select>
+
+        <div class="bank-box">
+          <p><strong>UPI:</strong> <span id="dispUpi">---</span></p>
+          <p><strong>Account:</strong> <span id="dispAccName">---</span></p>
+          <p><strong>Acc No:</strong> <span id="dispAccNo">---</span></p>
+          <p><strong>IFSC:</strong> <span id="dispIfsc">---</span></p>
+        </div>
+
+        <form id="paymentForm">
+          <div class="auth-form-group">
+            <label>₹ Amount <span style="color:#EF4444;">*</span></label>
+            <input type="number" id="amount" placeholder="Enter amount" min="1" required>
+          </div>
+          <div class="auth-form-group">
+            <label>UTR / Reference ID <span style="color:#EF4444;">*</span></label>
+            <input type="text" id="utr" placeholder="Jaise: 123456789012" maxlength="12" required>
+            <p class="small-note">⚠️ UTR number dalna zaroori hai</p>
+          </div>
+          <button type="submit" class="primary-btn" id="submitPayBtn">✅ Submit Proof</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== AUCTION PAGE ===== -->
+    <div id="page-auction" class="page">
+      <div class="app-header" style="margin: -16px -16px 16px;">
+        <div class="left">
+          <button class="back-btn" onclick="navigate('dashboard')">←</button>
+          <h1>Boli / Auction</h1>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:0.85rem;color:#6B6B6B;margin-bottom:6px;font-weight:500;">Select Cycle</div>
+        <select id="auctionCycleSelect" class="cycle-select" onchange="renderAuction()"></select>
+
+        <div class="auction-winner-box">
+          <h4>🏆 Highest Bidder</h4>
+          <div class="winner-name" id="highestBidderName">Abhi tak koi boli nahi lagi</div>
+          <div class="winner-details" id="highestBidderDetails">Discount: ₹0 | Pot: ₹0</div>
+        </div>
+
+        <form id="bidForm">
+          <div class="auth-form-group">
+            <label>🏷️ Discount Amount <span style="color:#EF4444;">*</span></label>
+            <input type="number" id="bidDiscount" placeholder="Kitna discount chhodenge?" min="1" required>
+            <p class="small-note">💡 Sabse zyada discount = sabse badi boli.</p>
+          </div>
+          <button type="submit" class="btn-secondary" id="submitBidBtn">🔨 Submit Boli</button>
+        </form>
+
+        <div style="margin-top:20px;">
+          <div style="font-size:0.95rem;font-weight:700;margin-bottom:8px;">📜 Is Month Ki Boli List</div>
           <table>
-            <thead>
-              <tr>
-                <th>Mahina</th>
-                <th>Amount</th>
-                <th>UTR</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="historyTableBody">
-              <tr><td colspan="4" style="text-align:center;">Loading history...</td></tr>
-            </tbody>
+            <thead><tr><th>Member</th><th>Discount</th><th>Payout</th></tr></thead>
+            <tbody id="auctionTableBody"><tr><td colspan="3" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
           </table>
         </div>
-      </section>
+      </div>
+    </div>
 
+    <!-- ===== HISTORY PAGE ===== -->
+    <div id="page-history" class="page">
+      <div class="app-header" style="margin: -16px -16px 16px;">
+        <div class="left">
+          <button class="back-btn" onclick="navigate('dashboard')">←</button>
+          <h1>My History</h1>
+        </div>
+      </div>
+      <div class="card">
+        <div style="margin-bottom:10px;">
+          <button class="btn-outline" onclick="exportExcel()">📊 Excel Download</button>
+        </div>
+        <table>
+          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody id="historyTableBody"><tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
+        </table>
+      </div>
     </div>
 
   </div>
 
-  <!-- Firebase Modular SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, push, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, push, set, remove, update, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+    // ============ FIREBASE CONFIG ============
     const firebaseConfig = {
       apiKey: "AIzaSyDT1Gl3Z_mLFaY6i0e01TKX3YUtVrplew8",
       authDomain: "my-hellping.firebaseapp.com",
@@ -219,391 +512,663 @@
       messagingSenderId: "537498438505",
       appId: "1:537498438505:web:204dc1653c612edc75cbf8"
     };
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getDatabase(app);
 
+    // ============ GLOBAL STATE ============
     let currentUserData = null;
     let isRegisterMode = false;
-    let globalUsers = {};
-    let globalDonations = {};
-    let globalHelpedRecords = {};
-    let globalPeopleHelpedCount = 0;
+    let allData = { users: {}, cycles: {}, bids: {}, bankDetails: {} };
+    let currentCycleDetail = null;
+    let donutChart = null;
+    let myHistoryData = [];
 
-    // Toggle Login vs Register UI
-    window.toggleAuthMode = function(register) {
-      isRegisterMode = register;
-      document.getElementById('authTitle').innerText = register ? "Naya Account Banayein" : "Gmail & Password Login";
-      document.getElementById('nameGroup').style.display = register ? "block" : "none";
-      document.getElementById('authBtn').innerText = register ? "Register Karein" : "Login Karein";
-      document.getElementById('forgotPassBlock').style.display = register ? "none" : "block";
-      document.getElementById('authError').style.display = "none";
-      document.getElementById('authToggleText').innerHTML = register ? 
-        `Pehle se account hai? <span onclick="toggleAuthMode(false)">Login Karein</span>` : 
-        `Account nahi hai? <span onclick="toggleAuthMode(true)">Naya Account Banayein</span>`;
-    };
+    // Expose for HTML inline handlers
+    window.currentUserData = null;
 
-    // Show/Hide password
-    window.togglePasswordView = function() {
-      const pwInput = document.getElementById('authPassword');
-      const toggle = document.getElementById('pwToggle');
-      if (pwInput.type === 'password') {
-        pwInput.type = 'text';
-        toggle.innerText = 'Hide';
-      } else {
-        pwInput.type = 'password';
-        toggle.innerText = 'Show';
-      }
-    };
-
-    // Forgot Password
-    window.handleForgotPassword = async function() {
-      const email = document.getElementById('authEmail').value.trim();
-      if (!email) {
-        alert("Pehle apni Gmail ID enter karein, phir 'Password bhool gaye?' par click karein.");
-        return;
-      }
+    // ============ HELPERS ============
+    function fmtINR(n) {
+      return '₹' + Number(n || 0).toLocaleString('en-IN');
+    }
+    function fmtMonthYear(dateStr) {
+      if (!dateStr) return '-';
       try {
-        await sendPasswordResetEmail(auth, email);
-        alert("Password reset link aapki email (" + email + ") par bhej diya gaya hai. Inbox check karein.");
-      } catch (err) {
-        showAuthError(friendlyAuthError(err));
-      }
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        return d.toLocaleString('default', { month: 'short', year: 'numeric' });
+      } catch { return dateStr; }
+    }
+    function getCurrentMonth() {
+      const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+      const d = new Date();
+      return m[d.getMonth()] + " " + d.getFullYear();
+    }
+    function showToast(msg, kind='success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast ' + kind;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2800);
+    }
+    window.showToast = showToast;
+
+    // ============ NAVIGATION ============
+    window.navigate = function(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById('page-' + pageId);
+      if (target) target.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Page-specific renders
+      if (pageId === 'dashboard') renderDashboard();
+      if (pageId === 'manage') renderManage();
+      if (pageId === 'pay') renderPaymentCycleSelect();
+      if (pageId === 'auction') { renderAuctionCycleSelect(); renderAuction(); }
+      if (pageId === 'history') renderHistory();
+      if (pageId === 'new-cycle') resetNewCycleForm();
     };
 
-    // Friendly error messages for common Firebase auth errors
-    function friendlyAuthError(err) {
-      const code = err.code || '';
-      const map = {
-        'auth/invalid-email': 'Gmail ID sahi format mein nahi hai.',
-        'auth/user-not-found': 'Is Gmail se koi account nahi mila. Pehle Register karein.',
-        'auth/wrong-password': 'Password galat hai. Dobara try karein.',
-        'auth/invalid-credential': 'Email ya Password galat hai.',
-        'auth/email-already-in-use': 'Yeh Gmail pehle se register hai. Login karein.',
-        'auth/weak-password': 'Password kam se kam 6 characters ka hona chahiye.',
-        'auth/too-many-requests': 'Bahut zyada attempts ho gaye hain. Thodi der baad try karein.',
-        'auth/network-request-failed': 'Internet connection check karein.'
-      };
-      return map[code] || (err.message || 'Kuch galat ho gaya, dobara try karein.');
-    }
+    // ============ AUTH ============
+    window.togglePassword = function() {
+      const p = document.getElementById('authPassword');
+      const b = document.querySelector('.password-toggle');
+      if (p.type === 'password') { p.type = 'text'; b.textContent = '🙈'; }
+      else { p.type = 'password'; b.textContent = '👁️'; }
+    };
 
-    function showAuthError(msg) {
-      const errBox = document.getElementById('authError');
-      errBox.innerText = msg;
-      errBox.style.display = 'block';
-    }
+    window.toggleAuthMode = function(reg) {
+      isRegisterMode = reg;
+      document.getElementById('authTitle').innerText = reg ? "📝 Register" : "🔐 Login";
+      document.getElementById('nameGroup').style.display = reg ? "block" : "none";
+      document.getElementById('authBtn').innerText = reg ? "Register" : "Login";
+      document.getElementById('authToggleText').innerHTML = reg
+        ? `Already have account? <span onclick="toggleAuthMode(false)">Login</span>`
+        : `New user? <span onclick="toggleAuthMode(true)">Register</span>`;
+    };
 
-    // Auth Form Submit
     document.getElementById('authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('authEmail').value.trim();
+      const email = document.getElementById('authEmail').value;
       const password = document.getElementById('authPassword').value;
-      const phone = document.getElementById('authPhone').value.trim();
-      const name = document.getElementById('authName').value.trim();
-      const authBtn = document.getElementById('authBtn');
-      document.getElementById('authError').style.display = 'none';
-
-      // Basic validation
-      if (isRegisterMode && !name) {
-        showAuthError("Kripya apna pura naam enter karein.");
-        return;
-      }
-      if (!/^[0-9]{10}$/.test(phone)) {
-        showAuthError("Mobile number 10 digit ka hona chahiye.");
-        return;
-      }
-      if (password.length < 6) {
-        showAuthError("Password kam se kam 6 characters ka hona chahiye.");
-        return;
-      }
-
-      const originalBtnText = authBtn.innerText;
-      authBtn.disabled = true;
-      authBtn.innerHTML = `<span class="spinner"></span> ${isRegisterMode ? 'Account ban raha hai...' : 'Login ho raha hai...'}`;
+      const phone = document.getElementById('authPhone').value;
+      const name = document.getElementById('authName').value;
 
       try {
         if (isRegisterMode) {
           const res = await createUserWithEmailAndPassword(auth, email, password);
           await set(ref(db, 'users/' + res.user.uid), {
-            name: name,
-            email: email,
-            phone: phone,
-            createdAt: Date.now()
+            name, email, phone, uid: res.user.uid, role: 'member', createdAt: Date.now()
           });
-          alert("Account successfully ban gaya!");
+          showToast("✅ Account ban gaya!", "success");
         } else {
           await signInWithEmailAndPassword(auth, email, password);
+          showToast("✅ Login successful!", "success");
         }
       } catch (err) {
-        showAuthError(friendlyAuthError(err));
-      } finally {
-        authBtn.disabled = false;
-        authBtn.innerText = originalBtnText;
+        showToast("❌ " + err.message, "error");
       }
     });
 
-    // Auth State Observer
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         document.getElementById('authSection').style.display = 'none';
         document.getElementById('appSection').style.display = 'block';
-        document.getElementById('mainNav').style.display = 'flex';
-        document.getElementById('userBar').style.display = 'flex';
-
-        // Get User Profile
-        const userSnap = await get(child(ref(db), `users/${user.uid}`));
-        if (userSnap.exists()) {
-          currentUserData = userSnap.val();
-          currentUserData.uid = user.uid;
-          document.getElementById('userEmailDisplay').innerText = currentUserData.name || currentUserData.email;
+        const snap = await get(child(ref(db), `users/${user.uid}`));
+        if (snap.exists()) {
+          currentUserData = snap.val();
         } else {
-          currentUserData = { email: user.email, uid: user.uid, phone: "" };
-          document.getElementById('userEmailDisplay').innerText = user.email;
+          currentUserData = { email: user.email, uid: user.uid, name: user.email };
         }
-
-        loadUserHistory();
+        window.currentUserData = currentUserData;
+        listenToData();
       } else {
         document.getElementById('authSection').style.display = 'block';
         document.getElementById('appSection').style.display = 'none';
-        document.getElementById('mainNav').style.display = 'none';
-        document.getElementById('userBar').style.display = 'none';
         currentUserData = null;
+        window.currentUserData = null;
       }
     });
 
     window.logoutUser = () => signOut(auth);
 
-    // Live Stats & Bank Account Listener
-    onValue(ref(db), (snapshot) => {
-      if (!snapshot.exists()) return;
-      const data = snapshot.val();
-
-      // Bank Details Sync
-      if(data.bankDetails) {
-        document.getElementById('dispUpi').innerText = data.bankDetails.upi || '-';
-        document.getElementById('dispAccName').innerText = data.bankDetails.accName || '-';
-        document.getElementById('dispAccNo').innerText = data.bankDetails.accNo || '-';
-        document.getElementById('dispIfsc').innerText = data.bankDetails.ifsc || '-';
-      }
-
-      // Stats Calculation
-      let totalBal = 0;
-      let paidCount = 0;
-      let pendingCount = 0;
-      const donations = data.donations || {};
-      const users = data.users || {};
-
-      // Save globally so stat modals can use it
-      globalUsers = users;
-      globalDonations = donations;
-      globalHelpedRecords = data.helpedRecords || {};
-      globalPeopleHelpedCount = data.peopleHelpedCount || 0;
-
-      Object.values(donations).forEach(d => {
-        if (d.status === 'Approved') {
-          totalBal += Number(d.amount || 0);
-          paidCount++;
-        } else if (d.status === 'Pending') {
-          pendingCount++;
+    // ============ REAL-TIME DATA LISTENER ============
+    function listenToData() {
+      onValue(ref(db), (snap) => {
+        if (!snap.exists()) {
+          allData = { users: {}, cycles: {}, bids: {}, bankDetails: {} };
+        } else {
+          const d = snap.val();
+          allData = {
+            users: d.users || {},
+            cycles: d.cycles || {},
+            bids: d.bids || {},
+            bankDetails: d.bankDetails || {}
+          };
         }
-      });
-
-      document.getElementById('statTotalBal').innerText = "₹" + totalBal;
-      document.getElementById('statTotalUsers').innerText = Object.keys(users).length;
-      document.getElementById('statPaidUsers').innerText = paidCount;
-      document.getElementById('statPendingUsers').innerText = pendingCount;
-      document.getElementById('statPeopleHelped').innerText = data.peopleHelpedCount || 0;
-    });
-
-    // Submit Payment
-    document.getElementById('paymentForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-
-      const amount = Number(document.getElementById('amount').value);
-      const utr = document.getElementById('utr').value;
-      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      const date = new Date();
-      const currentMonth = monthNames[date.getMonth()] + " " + date.getFullYear();
-
-      try {
-        const newRef = push(ref(db, 'donations'));
-        await set(newRef, {
-          userId: currentUserData.uid,
-          userName: currentUserData.name || 'User',
-          userPhone: currentUserData.phone || '',
-          amount: amount,
-          utr: utr,
-          month: currentMonth,
-          status: "Pending",
-          timestamp: Date.now()
-        });
-
-        alert("Payment Proof Submit ho gaya hai!");
-        this.reset();
-        document.getElementById('amount').value = 10;
-        loadUserHistory();
-      } catch (err) {
-        alert("Error: " + err.message);
-      } finally {
-        submitBtn.disabled = false;
-      }
-    });
-
-    // Fetch User Personal History
-    function loadUserHistory() {
-      if(!currentUserData) return;
-      onValue(ref(db, 'donations'), (snapshot) => {
-        const tableBody = document.getElementById('historyTableBody');
-        tableBody.innerHTML = "";
-        if (!snapshot.exists()) {
-          tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Koi record nahi mila.</td></tr>`;
-          return;
-        }
-
-        let found = false;
-        snapshot.forEach(child => {
-          const item = child.val();
-          if (item.userId === currentUserData.uid || item.userPhone === currentUserData.phone) {
-            found = true;
-            tableBody.innerHTML += `
-              <tr>
-                <td>${item.month}</td>
-                <td>₹${item.amount}</td>
-                <td>${item.utr}</td>
-                <td><span class="status-badge status-${item.status}">${item.status}</span></td>
-              </tr>
-            `;
-          }
-        });
-
-        if (!found) {
-          tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Koi record nahi mila.</td></tr>`;
+        // Refresh current page
+        const activePage = document.querySelector('.page.active');
+        if (activePage) {
+          const id = activePage.id.replace('page-', '');
+          if (id === 'dashboard') renderDashboard();
+          else if (id === 'manage') renderManage();
+          else if (id === 'pay') renderPaymentCycleSelect();
+          else if (id === 'auction') { renderAuctionCycleSelect(); renderAuction(); }
+          else if (id === 'history') renderHistory();
+          else if (id === 'cycle-detail' && currentCycleDetail) renderCycleDetail(currentCycleDetail);
         }
       });
     }
 
-    // ---- Stat History Modals ----
-    function fmtDate(ts) {
-      if (!ts) return '-';
-      const d = new Date(ts);
-      return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+    // ============ DASHBOARD RENDER ============
+    function getCyclesArray() {
+      return Object.entries(allData.cycles || {}).map(([id, c]) => ({ id, ...c }));
     }
 
-    function escapeHtml(str) {
-      return String(str == null ? '' : str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    }
+    function renderDashboard() {
+      const cycles = getCyclesArray();
+      const active = cycles.filter(c => (c.status || 'Active') === 'Active');
+      const completed = cycles.filter(c => c.status === 'Completed');
 
-    window.openStatModal = function(type) {
-      const overlay = document.getElementById('statModalOverlay');
-      const title = document.getElementById('statModalTitle');
-      const body = document.getElementById('statModalBody');
-      overlay.classList.add('active');
-      body.innerHTML = '<div class="modal-loading">Loading...</div>';
+      // Donut
+      document.getElementById('donutActiveVal').innerText = active.length;
+      renderDonutChart(active.length, completed.length);
 
-      if (type === 'totalUsers') {
-        title.innerText = 'Total Users';
-        renderUsersList(body);
-      } else if (type === 'paidUsers') {
-        title.innerText = 'Paid Users History';
-        renderDonationsList(body, 'Approved');
-      } else if (type === 'pendingUsers') {
-        title.innerText = 'Pending Users History';
-        renderDonationsList(body, 'Pending');
-      } else if (type === 'peopleHelped') {
-        title.innerText = 'People Helped History';
-        renderHelpedList(body);
-      }
-    };
+      // Total Monthly Pot = sum of (monthlyAmount * totalMembers) for active cycles
+      const totalPot = active.reduce((s, c) =>
+        s + (Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0)), 0);
+      document.getElementById('totalMonthlyPot').innerText = fmtINR(totalPot);
 
-    window.closeStatModal = function() {
-      document.getElementById('statModalOverlay').classList.remove('active');
-    };
-
-    function renderUsersList(body) {
-      const entries = Object.entries(globalUsers);
-      if (entries.length === 0) {
-        body.innerHTML = '<div class="modal-empty">Koi user nahi mila.</div>';
+      // Collection Progress
+      const listEl = document.getElementById('collectionProgressList');
+      listEl.innerHTML = '';
+      if (cycles.length === 0) {
+        listEl.innerHTML = `<div class="card"><div class="empty"><div class="emoji">🐷</div><div class="text">Koi cycle nahi hai</div><div class="hint">Manage Cycles se naya cycle banayein</div></div></div>`;
         return;
       }
-      // Newest first
-      entries.sort((a, b) => (b[1].createdAt || 0) - (a[1].createdAt || 0));
-      let rows = entries.map(([uid, u]) => `
-        <tr>
-          <td>${escapeHtml(u.name || '-')}</td>
-          <td>${escapeHtml(u.email || '-')}</td>
-          <td>${escapeHtml(u.phone || '-')}</td>
-          <td>${fmtDate(u.createdAt)}</td>
-        </tr>
-      `).join('');
-      body.innerHTML = `
-        <table>
-          <thead><tr><th>Naam</th><th>Email</th><th>Mobile</th><th>Joined</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-    }
-
-    function renderDonationsList(body, statusFilter) {
-      const entries = Object.entries(globalDonations).filter(([id, d]) => d.status === statusFilter);
-      if (entries.length === 0) {
-        body.innerHTML = '<div class="modal-empty">Koi record nahi mila.</div>';
-        return;
-      }
-      entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
-      let rows = entries.map(([id, d]) => `
-        <tr>
-          <td>${escapeHtml(d.userName || 'User')}</td>
-          <td>₹${escapeHtml(d.amount)}</td>
-          <td>${escapeHtml(d.month || '-')}</td>
-          <td>${escapeHtml(d.utr || '-')}</td>
-          <td><span class="status-badge status-${d.status}">${d.status}</span></td>
-        </tr>
-      `).join('');
-      body.innerHTML = `
-        <table>
-          <thead><tr><th>Naam</th><th>Amount</th><th>Mahina</th><th>UTR</th><th>Status</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
-    }
-
-    function renderHelpedList(body) {
-      const entries = Object.entries(globalHelpedRecords);
-      if (entries.length === 0) {
-        body.innerHTML = `
-          <div class="modal-empty">
-            Detailed history abhi upload nahi hui hai.<br>
-            Total People Helped so far: <strong>${globalPeopleHelpedCount}</strong>
+      cycles.forEach(c => {
+        const target = (Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0)) * Number(c.durationMonths || 1);
+        const collected = calcCycleCollection(c);
+        const monthlyTarget = (Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0));
+        const pct = monthlyTarget > 0 ? Math.min(100, Math.round((collected / monthlyTarget) * 100)) : 0;
+        const html = `
+          <div class="cycle-card" onclick="openCycleDetail('${c.id}')">
+            <div class="row1">
+              <div class="amount">${(monthlyTarget).toLocaleString('en-IN')}</div>
+              <div class="pct">${pct}%</div>
+            </div>
+            <div class="meta">${fmtINR(c.monthlyAmount)} / Member • ${c.totalMembers} Members</div>
+            <div class="bar"><div class="fill" style="width:${pct}%;"></div></div>
+            <div class="row3">
+              <span class="collected">Collected: ${fmtINR(collected)}</span>
+              <span class="target">Target: ${fmtINR(target)}</span>
+            </div>
           </div>
         `;
-        return;
-      }
-      entries.sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
-      let rows = entries.map(([id, h]) => `
-        <tr>
-          <td>${escapeHtml(h.name || '-')}</td>
-          <td>${escapeHtml(h.reason || h.description || '-')}</td>
-          <td>₹${escapeHtml(h.amount || 0)}</td>
-          <td>${fmtDate(h.timestamp)}</td>
-        </tr>
-      `).join('');
-      body.innerHTML = `
-        <table>
-          <thead><tr><th>Naam</th><th>Wajah</th><th>Amount</th><th>Date</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      `;
+        listEl.insertAdjacentHTML('beforeend', html);
+      });
     }
 
-    window.switchTab = function(tabId, btnElement) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      btnElement.classList.add('active');
+    function calcCycleCollection(cycle) {
+      const payments = cycle.payments || {};
+      return Object.values(payments)
+        .filter(p => p.status === 'Approved')
+        .reduce((s, p) => s + Number(p.amount || 0), 0);
+    }
+
+    function renderDonutChart(active, completed) {
+      const canvas = document.getElementById('cycleStatusChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      // Empty state
+      const totalVal = active + completed;
+      const values = totalVal === 0 ? [1] : [active, completed];
+      const colors = totalVal === 0 ? ['#E0E0E0'] : ['#3B82F6', '#4ADE80'];
+      const labels = totalVal === 0 ? ['No Data'] : ['Active', 'Completed'];
+
+      if (donutChart) {
+        donutChart.data.datasets[0].data = values;
+        donutChart.data.datasets[0].backgroundColor = colors;
+        donutChart.data.labels = labels;
+        donutChart.update();
+      } else {
+        donutChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: values,
+              backgroundColor: colors,
+              borderWidth: 0,
+              cutout: '65%'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { enabled: totalVal > 0 }
+            }
+          }
+        });
+      }
+    }
+
+    // ============ MANAGE CYCLES RENDER ============
+    function renderManage() {
+      const cycles = getCyclesArray();
+      const listEl = document.getElementById('manageCyclesList');
+      listEl.innerHTML = '';
+      if (cycles.length === 0) {
+        listEl.innerHTML = `<div class="card"><div class="empty"><div class="emoji">🐷</div><div class="text">Abhi tak koi cycle nahi hai</div><div class="hint">"+" button dabaake naya cycle banayein</div></div></div>`;
+        return;
+      }
+      cycles.forEach(c => {
+        const status = c.status || 'Active';
+        const statusClass = status === 'Active' ? 'active' : status === 'Completed' ? 'completed' : 'paused';
+        const monthlyTarget = Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0);
+        listEl.insertAdjacentHTML('beforeend', `
+          <div class="manage-item">
+            <div class="top">
+              <div onclick="openCycleDetail('${c.id}')" style="cursor:pointer;flex:1;">
+                <div class="amount">${monthlyTarget.toLocaleString('en-IN')}</div>
+                <div class="name">${c.name || 'Unnamed Cycle'}</div>
+              </div>
+              <span class="status-badge ${statusClass}" onclick="toggleCycleStatus('${c.id}')">${status}</span>
+            </div>
+            <div class="mid">
+              <div>📅 Start: ${fmtMonthYear(c.startDate)}</div>
+              <div>💰 <span class="amt">${fmtINR(c.monthlyAmount)}</span></div>
+            </div>
+            <div class="bot">
+              <div class="members">👥 ${c.totalMembers} Members</div>
+              <button class="delete-btn" onclick="deleteCycle('${c.id}', '${(c.name || 'Cycle').replace(/'/g, '\\\'')}')">🗑️</button>
+            </div>
+          </div>
+        `);
+      });
+    }
+
+    window.deleteCycle = async function(id, name) {
+      if (!confirm(`"${name}" cycle delete karna hai?\n\n⚠️ Iske saath sabhi members aur payments bhi delete ho jayenge!`)) return;
+      try {
+        await remove(ref(db, 'cycles/' + id));
+        showToast('🗑️ Cycle delete ho gaya', 'success');
+      } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+      }
     };
+
+    window.toggleCycleStatus = async function(id) {
+      const c = allData.cycles[id];
+      if (!c) return;
+      const newStatus = (c.status || 'Active') === 'Active' ? 'Completed' : 'Active';
+      try {
+        await update(ref(db, 'cycles/' + id), { status: newStatus });
+        showToast('✅ Status: ' + newStatus, 'success');
+      } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+      }
+    };
+
+    // ============ NEW CYCLE FORM ============
+    function resetNewCycleForm() {
+      document.getElementById('ncName').value = '';
+      document.getElementById('ncStartDate').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('ncMonthlyAmount').value = 2500;
+      document.getElementById('ncTotalMembers').value = 20;
+      document.getElementById('ncDuration').value = 20;
+      updateStartDateDisplay();
+      updateSummary();
+    }
+
+    window.updateStartDateDisplay = function() {
+      const v = document.getElementById('ncStartDate').value;
+      document.getElementById('ncStartDateDisplay').innerText = v ? fmtMonthYear(v) : 'Select date';
+    };
+
+    window.updateSummary = function() {
+      const amt = Number(document.getElementById('ncMonthlyAmount').value) || 0;
+      const mem = Number(document.getElementById('ncTotalMembers').value) || 0;
+      const dur = Number(document.getElementById('ncDuration').value) || 0;
+      const total = amt * mem * dur;
+      document.getElementById('ncSummaryVal').innerText = fmtINR(total);
+      document.getElementById('ncSummaryHint').innerText = `${mem} members × ${fmtINR(amt)} × ${dur} months`;
+    };
+
+    document.getElementById('newCycleForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('ncSubmitBtn');
+      const name = document.getElementById('ncName').value.trim() || `Cycle ${Object.keys(allData.cycles).length + 1}`;
+      const startDate = document.getElementById('ncStartDate').value || new Date().toISOString().slice(0, 10);
+      const monthlyAmount = Number(document.getElementById('ncMonthlyAmount').value);
+      const totalMembers = Number(document.getElementById('ncTotalMembers').value);
+      const durationMonths = Number(document.getElementById('ncDuration').value);
+
+      if (!monthlyAmount || monthlyAmount < 1) return showToast('❌ Monthly amount daalein', 'error');
+      if (!totalMembers || totalMembers < 2) return showToast('❌ Minimum 2 members chahiye', 'error');
+      if (!durationMonths || durationMonths < 1) return showToast('❌ Duration daalein', 'error');
+
+      btn.disabled = true;
+      btn.innerText = '⏳ Creating...';
+
+      try {
+        const newRef = push(ref(db, 'cycles'));
+        await set(newRef, {
+          name,
+          startDate,
+          monthlyAmount,
+          totalMembers,
+          durationMonths,
+          status: 'Active',
+          createdAt: Date.now(),
+          createdBy: currentUserData.uid || '',
+          members: {},
+          payments: {}
+        });
+        showToast('✅ Cycle create ho gaya!', 'success');
+        navigate('manage');
+      } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Create Cycle';
+      }
+    });
+
+    // ============ CYCLE DETAIL ============
+    window.openCycleDetail = function(cycleId) {
+      currentCycleDetail = cycleId;
+      const c = { id: cycleId, ...allData.cycles[cycleId] };
+      renderCycleDetail(cycleId);
+      navigate('cycle-detail');
+    };
+
+    function renderCycleDetail(cycleId) {
+      const c = allData.cycles[cycleId];
+      if (!c) return;
+      document.getElementById('cdTitle').innerText = c.name || 'Cycle';
+      const totalPot = Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0) * Number(c.durationMonths || 1);
+      const collected = calcCycleCollection(c);
+      const pct = totalPot > 0 ? Math.min(100, Math.round((collected / totalPot) * 100)) : 0;
+      document.getElementById('cdTotalPot').innerText = fmtINR(totalPot);
+      document.getElementById('cdProgress').innerText = pct + '%';
+      document.getElementById('cdProgressFill').style.width = pct + '%';
+      document.getElementById('cdMonthly').innerText = fmtINR(c.monthlyAmount);
+      document.getElementById('cdMembersCount').innerText = c.totalMembers || 0;
+      document.getElementById('cdDuration').innerText = c.durationMonths || 0;
+
+      // Members
+      const membersEl = document.getElementById('cdMembersList');
+      const members = c.members || {};
+      const memberArr = Object.entries(members).map(([uid, m]) => ({ uid, ...m }))
+                        .sort((a, b) => (a.position || 0) - (b.position || 0));
+
+      if (memberArr.length === 0) {
+        membersEl.innerHTML = `<div class="empty"><div class="emoji">👥</div><div class="text">Abhi koi member nahi hai</div><div class="hint">Register karke members ko cycle mein add karein</div></div>`;
+      } else {
+        membersEl.innerHTML = memberArr.map(m => {
+          const status = m.turnStatus || 'Pending';
+          const cls = status === 'Received' ? 'received' : status === 'Current' ? 'current' : 'pending';
+          const rowCls = status === 'Current' ? 'current' : '';
+          return `
+            <div class="member-row ${rowCls}">
+              <div class="member-pos">#${m.position || '?'}</div>
+              <div class="member-info">
+                <div class="member-name">${m.name || 'Unknown'} ${status === 'Current' ? '👑' : ''}</div>
+                <div class="member-phone">${m.phone || '-'}</div>
+              </div>
+              <span class="turn-badge ${cls}">${status}</span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Payments
+      const paymentsEl = document.getElementById('cdPaymentsList');
+      const payments = c.payments || {};
+      const paymentArr = Object.entries(payments).map(([id, p]) => ({ id, ...p }))
+                          .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      if (paymentArr.length === 0) {
+        paymentsEl.innerHTML = `<div class="empty"><div class="emoji">💳</div><div class="text">Koi payment nahi hua</div></div>`;
+      } else {
+        paymentsEl.innerHTML = paymentArr.map(p => {
+          const s = p.status || 'Pending';
+          const cls = s === 'Approved' ? 'received' : s === 'Rejected' ? 'pending' : 'pending';
+          return `
+            <div class="member-row">
+              <div class="member-pos" style="background:rgba(74,222,128,0.15);color:#166534;">💰</div>
+              <div class="member-info">
+                <div class="member-name">${p.userName || 'Unknown'}</div>
+                <div class="member-phone">${p.month} • UTR: ${p.utr || '—'}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-weight:700;color:#1A1A1A;font-size:0.9rem;">${fmtINR(p.amount)}</div>
+                <span class="turn-badge ${cls}" style="margin-top:2px;display:inline-block;">${s}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    window.switchDetailTab = function(tab, btn) {
+      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('cdMembersList').style.display = tab === 'members' ? 'block' : 'none';
+      document.getElementById('cdPaymentsList').style.display = tab === 'payments' ? 'block' : 'none';
+    };
+
+    // ============ PAYMENT ============
+    function renderPaymentCycleSelect() {
+      const sel = document.getElementById('paymentCycleSelect');
+      const cycles = getCyclesArray().filter(c => (c.status || 'Active') === 'Active');
+      sel.innerHTML = '<option value="">-- Select Cycle --</option>' +
+        cycles.map(c => `<option value="${c.id}">${c.name || 'Cycle'} • ${fmtINR(c.monthlyAmount)}/month</option>`).join('');
+
+      // Bank details
+      const bd = allData.bankDetails || {};
+      document.getElementById('dispUpi').innerText = bd.upi || '-';
+      document.getElementById('dispAccName').innerText = bd.accName || '-';
+      document.getElementById('dispAccNo').innerText = bd.accNo || '-';
+      document.getElementById('dispIfsc').innerText = bd.ifsc || '-';
+
+      // Auto-fill amount when cycle selected
+      sel.onchange = () => {
+        const c = allData.cycles[sel.value];
+        if (c) document.getElementById('amount').value = c.monthlyAmount || '';
+      };
+    }
+
+    document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitPayBtn');
+      const cycleId = document.getElementById('paymentCycleSelect').value;
+      const amount = Number(document.getElementById('amount').value);
+      const utr = document.getElementById('utr').value.trim();
+
+      if (!cycleId) return showToast('❌ Cycle select karein', 'error');
+      if (!amount || amount < 1) return showToast('❌ Sahi amount daalein', 'error');
+      if (!utr || utr.length < 4) return showToast('❌ UTR number daalein (min 4 chars)', 'error');
+
+      btn.disabled = true;
+      btn.innerText = '⏳ Submitting...';
+
+      try {
+        const newRef = push(ref(db, `cycles/${cycleId}/payments`));
+        await set(newRef, {
+          userId: currentUserData.uid,
+          userName: currentUserData.name || currentUserData.email || 'User',
+          userPhone: currentUserData.phone || '',
+          amount,
+          utr,
+          month: getCurrentMonth(),
+          status: 'Pending',
+          timestamp: Date.now()
+        });
+        showToast('✅ Payment proof submit ho gaya!', 'success');
+        document.getElementById('amount').value = '';
+        document.getElementById('utr').value = '';
+        generateReceipt(currentUserData.name || 'User', amount, utr, getCurrentMonth(), allData.cycles[cycleId]?.name || 'Cycle');
+      } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '✅ Submit Proof';
+      }
+    });
+
+    function generateReceipt(name, amount, utr, month, cycleName) {
+      const html = `
+        <div style="padding:30px; font-family:Arial; max-width:400px; margin:auto; border:2px solid #5B54D6; border-radius:12px; text-align:center;">
+          <h2 style="color:#5B54D6;">💰 Payment Receipt</h2>
+          <hr style="border:1px dashed #5B54D6;">
+          <p><strong>Name:</strong> ${name}</p>
+          <p><strong>Cycle:</strong> ${cycleName}</p>
+          <p><strong>Amount:</strong> ₹${amount}</p>
+          <p><strong>UTR:</strong> ${utr}</p>
+          <p><strong>Month:</strong> ${month}</p>
+          <hr style="border:1px dashed #5B54D6;">
+          <p style="font-size:0.8rem; color:#6B6B6B;">✅ Payment Submitted!<br>Waiting for admin approval.</p>
+        </div>
+      `;
+      const w = window.open('', '_blank');
+      w.document.write(`<html><head><title>Receipt</title></head><body style="margin:0;padding:20px;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#F4F5F9;">${html}<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script><script>setTimeout(()=>{html2pdf().from(document.body.firstElementChild).save('Receipt_${name}_${month}.pdf');},500);<\/script></body></html>`);
+      w.document.close();
+    }
+
+    // ============ AUCTION / BOLI ============
+    function renderAuctionCycleSelect() {
+      const sel = document.getElementById('auctionCycleSelect');
+      const cycles = getCyclesArray().filter(c => (c.status || 'Active') === 'Active');
+      const currentVal = sel.value;
+      sel.innerHTML = cycles.length === 0
+        ? '<option value="">-- Koi active cycle nahi --</option>'
+        : cycles.map(c => `<option value="${c.id}">${c.name || 'Cycle'} • ${fmtINR(c.monthlyAmount)}/month</option>`).join('');
+      if (currentVal && cycles.find(c => c.id === currentVal)) sel.value = currentVal;
+    }
+
+    window.renderAuction = function() {
+      const cycleId = document.getElementById('auctionCycleSelect').value;
+      const table = document.getElementById('auctionTableBody');
+      const nameEl = document.getElementById('highestBidderName');
+      const detEl = document.getElementById('highestBidderDetails');
+
+      if (!cycleId) {
+        table.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#9B9B9B;">Cycle select karein</td></tr>`;
+        nameEl.innerText = 'Koi cycle select nahi hai';
+        detEl.innerText = '-';
+        return;
+      }
+
+      const cycle = allData.cycles[cycleId];
+      if (!cycle) return;
+      const currentMonth = getCurrentMonth();
+      const totalPot = Number(cycle.monthlyAmount || 0) * Number(cycle.totalMembers || 0);
+
+      const bids = Object.values(allData.bids || {}).filter(b => b.cycleId === cycleId && b.month === currentMonth);
+      bids.sort((a, b) => (b.discountAmount || 0) - (a.discountAmount || 0));
+
+      if (bids.length === 0) {
+        nameEl.innerText = 'Abhi tak koi boli nahi lagi';
+        detEl.innerText = `Discount: ₹0 | Pot: ${fmtINR(totalPot)}`;
+        table.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#9B9B9B;">🔨 Is mahine koi boli nahi lagi</td></tr>`;
+      } else {
+        const top = bids[0];
+        const payout = Math.max(0, totalPot - Number(top.discountAmount || 0));
+        nameEl.innerText = '👑 ' + (top.userName || 'Unknown');
+        detEl.innerText = `Discount: ${fmtINR(top.discountAmount)} | Payout: ${fmtINR(payout)}`;
+        table.innerHTML = bids.map(b => {
+          const p = Math.max(0, totalPot - Number(b.discountAmount || 0));
+          return `<tr><td>${b.userName || 'Unknown'}</td><td><strong style="color:#F5A623;">${fmtINR(b.discountAmount)}</strong></td><td>${fmtINR(p)}</td></tr>`;
+        }).join('');
+      }
+    };
+
+    document.getElementById('bidForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBidBtn');
+      const cycleId = document.getElementById('auctionCycleSelect').value;
+      const discount = Number(document.getElementById('bidDiscount').value);
+
+      if (!cycleId) return showToast('❌ Cycle select karein', 'error');
+      if (!discount || discount < 1) return showToast('❌ Sahi discount amount daalein', 'error');
+
+      btn.disabled = true;
+      btn.innerText = '⏳ Submitting Bid...';
+
+      try {
+        const newRef = push(ref(db, 'bids'));
+        await set(newRef, {
+          cycleId,
+          userId: currentUserData.uid,
+          userName: currentUserData.name || currentUserData.email || 'User',
+          userPhone: currentUserData.phone || '',
+          discountAmount: discount,
+          month: getCurrentMonth(),
+          timestamp: Date.now()
+        });
+        showToast('✅ Boli successfully lag gayi!', 'success');
+        document.getElementById('bidDiscount').value = '';
+      } catch (err) {
+        showToast('❌ ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🔨 Submit Boli';
+      }
+    });
+
+    // ============ HISTORY ============
+    function renderHistory() {
+      const table = document.getElementById('historyTableBody');
+      myHistoryData = [];
+      const cycles = getCyclesArray();
+      cycles.forEach(c => {
+        Object.entries(c.payments || {}).forEach(([pid, p]) => {
+          if (p.userId === currentUserData.uid || p.userPhone === currentUserData.phone) {
+            myHistoryData.push({ ...p, cycleName: c.name });
+          }
+        });
+      });
+      myHistoryData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+      if (myHistoryData.length === 0) {
+        table.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi record nahi</td></tr>`;
+        return;
+      }
+      table.innerHTML = myHistoryData.map(p => {
+        const s = p.status || 'Pending';
+        const cls = s === 'Approved' ? 'received' : 'pending';
+        return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td><span class="turn-badge ${cls}">${s}</span></td></tr>`;
+      }).join('');
+    }
+
+    window.exportExcel = function() {
+      if (myHistoryData.length === 0) return showToast('❌ Koi history nahi hai!', 'error');
+      let csv = 'Cycle,Month,Amount,UTR,Status\n';
+      myHistoryData.forEach(p => {
+        csv += `"${p.cycleName || ''}","${p.month || ''}",${p.amount || 0},"${p.utr || 'N/A'}","${p.status || 'Pending'}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `BC_History_${(currentUserData.name || 'user').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('✅ Excel download ho raha hai!');
+    };
+
+    // ============ INIT ============
+    // If not logged in, show auth
+    setTimeout(() => {
+      if (!auth.currentUser) {
+        document.getElementById('authSection').style.display = 'block';
+      }
+    }, 500);
   </script>
 </body>
 </html>
