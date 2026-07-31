@@ -833,7 +833,14 @@
       const sel = document.getElementById('paymentCycleSelect');
       const cycles = getCyclesArray().filter(c => (c.status || 'Active') === 'Active');
       sel.innerHTML = '<option value="">-- Select Cycle --</option>' +
-        cycles.map(c => `<option value="${c.id}">${c.name || 'Cycle'} • ${fmtINR(c.monthlyAmount)}/month</option>`).join('');
+        cycles.map(c => {
+          const info = hasAllMembersPaid(c);
+          const isFull = info.currentCount === 0 && info.batchesCompleted > 0;
+          const label = isFull
+            ? `🔒 ${c.name || 'Cycle'} • Batch Full — Closed`
+            : `${c.name || 'Cycle'} • ${fmtINR(c.monthlyAmount)}/month`;
+          return `<option value="${c.id}" ${isFull ? 'disabled' : ''}>${label}</option>`;
+        }).join('');
 
       // Bank details
       const bd = allData.bankDetails || {};
@@ -842,33 +849,21 @@
       document.getElementById('dispAccNo').innerText = bd.accNo || '-';
       document.getElementById('dispIfsc').innerText = bd.ifsc || '-';
 
-      // Auto-fill amount and check if current batch is complete (count-based)
+      // Auto-fill amount; block if this cycle's current batch is already full
       sel.onchange = () => {
         const c = allData.cycles[sel.value];
         const submitBtn = document.getElementById('submitPayBtn');
         if (c) {
           document.getElementById('amount').value = c.monthlyAmount || '';
           const info = hasAllMembersPaid(c);
-          // Check if current batch is at 0 (meaning batch just completed)
-          if (info.currentCount === 0 && info.batchesCompleted > 0) {
-            submitBtn.disabled = false;
-            submitBtn.innerText = '🔄 New Batch — Submit Proof';
-            submitBtn.style.background = '#F5A623';
-            document.getElementById('amount').disabled = false;
-            document.getElementById('utr').disabled = false;
-          } else if (info.approvedCount >= info.totalMembers && info.currentCount > 0) {
-            // Partially into next batch — still allow
-            submitBtn.disabled = false;
-            submitBtn.innerText = '✅ Submit Proof';
-            submitBtn.style.background = '';
-            document.getElementById('amount').disabled = false;
-            document.getElementById('utr').disabled = false;
-          } else if (info.approvedCount > 0 && info.approvedCount < info.totalMembers) {
-            submitBtn.disabled = false;
-            submitBtn.innerText = '✅ Submit Proof';
-            submitBtn.style.background = '';
-            document.getElementById('amount').disabled = false;
-            document.getElementById('utr').disabled = false;
+          const isFull = info.currentCount === 0 && info.batchesCompleted > 0;
+          if (isFull) {
+            submitBtn.disabled = true;
+            submitBtn.innerText = '🔒 Batch Full — Payments Closed';
+            submitBtn.style.background = '#9B9B9B';
+            document.getElementById('amount').disabled = true;
+            document.getElementById('utr').disabled = true;
+            showToast('❌ Is cycle ka batch (' + info.totalMembers + ' members) pura ho chuka hai. Payment band hai.', 'error');
           } else {
             submitBtn.disabled = false;
             submitBtn.innerText = '✅ Submit Proof';
@@ -896,6 +891,16 @@
       if (!cycleId) return showToast('❌ Cycle select karein', 'error');
       if (!amount || amount < 1) return showToast('❌ Sahi amount daalein', 'error');
       if (!utr || utr.length < 4) return showToast('❌ UTR number daalein (min 4 chars)', 'error');
+
+      // Safety check: batch already full ho sakta hai (realtime update ki wajah se)
+      const selectedCycle = allData.cycles[cycleId];
+      if (selectedCycle) {
+        const info = hasAllMembersPaid(selectedCycle);
+        if (info.currentCount === 0 && info.batchesCompleted > 0) {
+          renderPaymentCycleSelect();
+          return showToast('❌ Is cycle ka batch pura ho chuka hai. Payment band hai.', 'error');
+        }
+      }
 
       btn.disabled = true;
       btn.innerText = '⏳ Submitting...';
