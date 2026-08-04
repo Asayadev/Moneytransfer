@@ -1,1330 +1,1839 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>BC Committee - Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif; }
-    body { background: #F4F5F9; color: #1A1A1A; min-height: 100vh; padding-bottom: 20px; -webkit-tap-highlight-color: transparent; }
-    .app-container { max-width: 480px; margin: 0 auto; background: #F4F5F9; min-height: 100vh; position: relative; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
+    <title>👤 Gram Invest - User Panel</title>
 
-    /* ===== HEADER ===== */
-    .app-header { background: #5B54D6; color: white; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; box-shadow: 0 2px 8px rgba(91, 84, 214, 0.2); }
-    .app-header .left { display: flex; align-items: center; gap: 14px; }
-    .app-header .back-btn { background: none; border: none; color: white; cursor: pointer; padding: 4px; opacity: 0.9; display: flex; align-items: center; }
-    .app-header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.01em; }
-    .app-header .actions { display: flex; align-items: center; gap: 14px; opacity: 0.9; }
-    .app-header .actions button { background: none; border: none; color: white; cursor: pointer; padding: 4px; display: flex; align-items: center; }
-    .app-header .actions button:hover { opacity: 0.7; }
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
+    </script>
 
-    /* ===== PAGE CONTENT ===== */
-    .page { padding: 16px; display: none; animation: fadeIn 300ms ease-out; }
-    .page.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #16a34a;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --bg: #f0f4ff;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e8edf5;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+            --radius: 16px;
+            --header-height: 64px;
+        }
 
-    /* ===== CARDS ===== */
-    .card { background: white; border-radius: 20px; border: 1px solid #F0F0F0; padding: 20px; margin-bottom: 16px; transition: all 0.2s ease; }
-    .card.clickable { cursor: pointer; }
-    .card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* ===== DONUT CHART CARD ===== */
-    .donut-card { text-align: center; }
-    .donut-card h2 { font-size: 1.15rem; font-weight: 700; color: #1A1A1A; margin-bottom: 12px; }
-    .donut-wrap { position: relative; height: 220px; margin: 0 auto; max-width: 240px; }
-    .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
-    .donut-center .lbl { font-size: 0.85rem; color: #6B6B6B; font-weight: 500; }
-    .donut-center .val { font-size: 1.8rem; font-weight: 800; color: #1A1A1A; }
-    .donut-legend { display: flex; align-items: center; justify-content: center; gap: 24px; margin-top: 8px; }
-    .donut-legend .item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #1A1A1A; }
-    .donut-legend .dot { width: 12px; height: 12px; border-radius: 3px; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 30px;
+        }
 
-    /* ===== TOTAL POT CARD ===== */
-    .pot-card { background: #5B54D6; color: white; border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 16px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(91,84,214,0.25); }
-    .pot-icon { width: 52px; height: 52px; background: rgba(255,255,255,0.18); border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 1.6rem; }
-    .pot-card .lbl { font-size: 0.9rem; opacity: 0.95; font-weight: 500; }
-    .pot-card .amount { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+        /* ===== HEADER ===== */
+        header {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 15px rgba(30, 58, 138, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: var(--header-height);
+        }
 
-    /* ===== SECTION HEADING ===== */
-    .section-h { font-size: 1.1rem; font-weight: 700; color: #1A1A1A; margin: 20px 4px 12px; }
+        header .left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    /* ===== CYCLE PROGRESS CARDS ===== */
-    .cycle-card { background: white; border-radius: 20px; border: 1px solid #F0F0F0; padding: 20px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s ease; animation: slideUp 300ms ease-out; }
-    .cycle-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
-    .cycle-card .row1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
-    .cycle-card .amount { font-size: 1.8rem; font-weight: 800; color: #1A1A1A; }
-    .cycle-card .pct { font-size: 1.15rem; font-weight: 700; color: #5B54D6; }
-    .cycle-card .meta { font-size: 0.9rem; color: #6B6B6B; margin-bottom: 12px; }
-    .cycle-card .bar { width: 100%; height: 8px; background: #F0F0F0; border-radius: 20px; overflow: hidden; }
-    .cycle-card .bar .fill { height: 100%; background: #5B54D6; border-radius: 20px; transition: width 0.6s ease; }
-    .cycle-card .row3 { display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.85rem; }
-    .cycle-card .collected { color: #16A34A; font-weight: 600; }
-    .cycle-card .target { color: #6B6B6B; }
+        header .left .menu-icon {
+            font-size: 17px;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 6px;
+            transition: 0.2s;
+            background: rgba(255, 255, 255, 0.08);
+            border: none;
+            color: white;
+        }
+        header .left .menu-icon:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
 
-    /* ===== QUICK ACTIONS ===== */
-    .quick-action { background: white; border-radius: 20px; border: 1px solid #F0F0F0; padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.2s ease; margin-bottom: 10px; width: 100%; }
-    .quick-action:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
-    .quick-action .icon-box { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
-    .quick-action .label { flex: 1; text-align: left; font-size: 1rem; font-weight: 600; color: #1A1A1A; }
-    .quick-action .arrow { color: #9B9B9B; font-size: 1.2rem; }
+        header .left .brand {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        header .left .brand small {
+            font-size: 20px;
+            font-weight: 400;
+            opacity: 0.75;
+            display: block;
+            margin-top: 1px;
+            white-space: nowrap;
+        }
 
-    /* ===== MANAGE CYCLE ITEMS ===== */
-    .manage-item { background: white; border-radius: 20px; border: 1px solid #F0F0F0; padding: 18px; margin-bottom: 12px; animation: slideUp 300ms ease-out; }
-    .manage-item .top { display: flex; align-items: start; justify-content: space-between; margin-bottom: 12px; }
-    .manage-item .amount { font-size: 1.6rem; font-weight: 800; color: #1A1A1A; }
-    .manage-item .name { font-size: 0.8rem; color: #9B9B9B; margin-top: 2px; }
-    .status-badge { font-size: 0.75rem; font-weight: 700; padding: 5px 12px; border-radius: 8px; border: 1.5px solid; cursor: pointer; text-transform: uppercase; letter-spacing: 0.3px; }
-    .status-badge.active { background: rgba(74, 222, 128, 0.15); color: #166534; border-color: rgba(74, 222, 128, 0.4); }
-    .status-badge.completed { background: rgba(59, 130, 246, 0.15); color: #1E40AF; border-color: rgba(59, 130, 246, 0.4); }
-    .status-badge.paused { background: rgba(245, 158, 11, 0.15); color: #92400E; border-color: rgba(245, 158, 11, 0.4); }
-    .manage-item .mid { display: flex; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid #F0F0F0; margin-bottom: 12px; font-size: 0.9rem; color: #6B6B6B; }
-    .manage-item .mid .amt { font-weight: 700; color: #1A1A1A; }
-    .manage-item .bot { display: flex; align-items: center; justify-content: space-between; }
-    .manage-item .members { display: flex; align-items: center; gap: 6px; font-size: 0.9rem; font-weight: 600; color: #5B54D6; }
-    .manage-item .delete-btn { background: none; border: none; padding: 8px; border-radius: 8px; cursor: pointer; color: #FF6B6B; transition: background 0.2s; }
-    .manage-item .delete-btn:hover { background: rgba(255,107,107,0.1); }
+        header .right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-    /* ===== FAB ===== */
-    .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 18px; background: #B8A9E8; color: #1A1A1A; border: none; box-shadow: 0 4px 16px rgba(184,169,232,0.5); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; font-weight: 400; transition: all 0.2s; z-index: 40; }
-    .fab:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(184,169,232,0.7); }
-    @media (min-width: 480px) { .fab { right: calc(50% - 240px + 24px); } }
+        header .right .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            opacity: 0.95;
+        }
 
-    /* ===== NEW CYCLE FORM ===== */
-    .form-field { margin-bottom: 20px; }
-    .form-field .label { font-size: 0.85rem; color: #6B6B6B; font-weight: 500; margin-bottom: 4px; }
-    .form-field input[type="text"], .form-field input[type="number"], .form-field input[type="date"] {
-      width: 100%; background: transparent; border: none; border-bottom: 1px solid #E0E0E0; padding: 8px 2px;
-      font-size: 1.4rem; font-weight: 700; color: #1A1A1A; outline: none; transition: border-color 0.2s;
-    }
-    .form-field input:focus { border-color: #5B54D6; }
-    .form-field input::placeholder { color: #9B9B9B; font-weight: 400; font-size: 1.1rem; }
-    .form-field.big input { font-size: 1.4rem; }
+        header .right .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            flex-shrink: 0;
+        }
 
-    .date-field { display: flex; align-items: center; gap: 12px; border-bottom: 1px solid #E0E0E0; padding: 12px 0; margin-bottom: 20px; }
-    .date-field .info { flex: 1; }
-    .date-field .lbl { font-size: 1.1rem; color: #1A1A1A; font-weight: 500; }
-    .date-field .val { font-size: 0.9rem; color: #6B6B6B; margin-top: 2px; }
-    .date-field .cal-btn { cursor: pointer; color: #5B54D6; font-size: 1.4rem; padding: 4px; display: flex; align-items: center; }
-    .date-field input[type="date"] { position: absolute; opacity: 0; pointer-events: none; }
+        /* ===== DRAWER ===== */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 200;
+            display: none;
+            opacity: 0;
+            transition: 0.3s;
+            backdrop-filter: blur(2px);
+        }
+        .drawer-overlay.show {
+            display: block;
+            opacity: 1;
+        }
 
-    .summary-card { background: rgba(91,84,214,0.05); border: 1px solid rgba(91,84,214,0.2); border-radius: 16px; padding: 16px; margin-bottom: 24px; }
-    .summary-card .lbl { font-size: 0.7rem; color: #6B6B6B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .summary-card .val { font-size: 1.6rem; font-weight: 800; color: #5B54D6; margin-top: 2px; }
-    .summary-card .hint { font-size: 0.75rem; color: #6B6B6B; margin-top: 4px; }
+        .drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 290px;
+            background: var(--card-bg);
+            z-index: 300;
+            transform: translateX(-100%);
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.08);
+            overflow-y: auto;
+        }
+        .drawer.open {
+            transform: translateX(0);
+        }
 
-    .primary-btn { width: 100%; padding: 15px; background: #5B54D6; color: white; border: none; border-radius: 100px; font-size: 1.05rem; font-weight: 700; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 8px rgba(91,84,214,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .primary-btn:hover { background: #4A44C0; box-shadow: 0 4px 16px rgba(91,84,214,0.4); }
-    .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .drawer .drawer-header {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            padding: 30px 20px 25px;
+            text-align: center;
+            position: relative;
+        }
 
-    /* ===== AUTH ===== */
-    .auth-container { max-width: 400px; margin: 40px auto; padding: 0 16px; }
-    .auth-card { background: white; border-radius: 20px; padding: 28px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #F0F0F0; }
-    .auth-card h2 { color: #5B54D6; font-size: 1.4rem; margin-bottom: 20px; text-align: center; font-weight: 700; }
-    .auth-form-group { margin-bottom: 16px; position: relative; }
-    .auth-form-group label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 6px; color: #1A1A1A; }
-    .auth-form-group input { width: 100%; padding: 12px 14px; border: 1px solid #E0E0E0; border-radius: 12px; font-size: 0.95rem; background: white; transition: border-color 0.2s; }
-    .auth-form-group input:focus { outline: none; border-color: #5B54D6; }
-    .password-toggle { position: absolute; right: 12px; top: 36px; cursor: pointer; font-size: 1.2rem; background: none; border: none; color: #9B9B9B; }
-    .auth-toggle { text-align: center; margin-top: 16px; font-size: 0.9rem; color: #6B6B6B; }
-    .auth-toggle span { color: #5B54D6; cursor: pointer; font-weight: 600; }
+        .drawer .drawer-header .drawer-close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            width: auto;
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 10px;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+        .drawer .drawer-header .drawer-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
 
-    /* ===== TABS (Cycle Detail) ===== */
-    .tabs { display: flex; gap: 6px; background: rgba(240,240,240,0.6); border-radius: 100px; padding: 4px; width: fit-content; margin: 0 auto 16px; }
-    .tabs button { background: transparent; border: none; padding: 8px 16px; border-radius: 100px; font-size: 0.85rem; font-weight: 600; color: #6B6B6B; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
-    .tabs button.active { background: white; color: #1A1A1A; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+        .drawer .drawer-header .avatar-lg {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 auto 10px;
+            border: 3px solid rgba(255, 255, 255, 0.25);
+        }
 
-    /* ===== MEMBER LIST ===== */
-    .member-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #F0F0F0; transition: background 0.15s; }
-    .member-row:last-child { border-bottom: none; }
-    .member-row:hover { background: #FAFAF8; }
-    .member-row.current { background: rgba(91,84,214,0.05); }
-    .member-pos { width: 36px; height: 36px; border-radius: 50%; background: rgba(184,169,232,0.2); color: #5B21B6; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
-    .member-info { flex: 1; min-width: 0; }
-    .member-name { font-size: 0.9rem; font-weight: 600; color: #1A1A1A; }
-    .member-phone { font-size: 0.75rem; color: #9B9B9B; }
-    .turn-badge { font-size: 0.65rem; font-weight: 700; padding: 4px 10px; border-radius: 100px; text-transform: uppercase; letter-spacing: 0.3px; border: 1px solid; }
-    .turn-badge.received { background: rgba(74,222,128,0.15); color: #166534; border-color: rgba(74,222,128,0.4); }
-    .turn-badge.current { background: rgba(59,130,246,0.15); color: #1E40AF; border-color: rgba(59,130,246,0.4); }
-    .turn-badge.pending { background: rgba(245,158,11,0.15); color: #92400E; border-color: rgba(245,158,11,0.4); }
+        .drawer .drawer-header .drawer-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .drawer .drawer-header .drawer-phone {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
 
-    /* ===== MINI STAT ===== */
-    .mini-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #F0F0F0; }
-    .mini-stat { text-align: center; }
-    .mini-stat .ico { width: 32px; height: 32px; border-radius: 10px; margin: 0 auto 4px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
-    .mini-stat .val { font-size: 0.9rem; font-weight: 700; color: #1A1A1A; }
-    .mini-stat .lbl { font-size: 0.65rem; color: #9B9B9B; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+        .drawer .drawer-nav {
+            padding: 10px 0 6px;
+        }
 
-    /* ===== EMPTY STATE ===== */
-    .empty { padding: 40px 20px; text-align: center; }
-    .empty .emoji { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
-    .empty .text { font-size: 0.9rem; color: #9B9B9B; }
-    .empty .hint { font-size: 0.75rem; color: #9B9B9B; margin-top: 4px; }
+        .drawer .drawer-nav a {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 13px 22px;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: 0.15s;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+        }
+        .drawer .drawer-nav a:hover {
+            background: #f1f5f9;
+        }
+        .drawer .drawer-nav a.active {
+            background: #eff6ff;
+            border-left-color: var(--primary);
+            color: var(--primary);
+        }
 
-    /* ===== TOAST ===== */
-    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1A1A1A; color: white; padding: 10px 20px; border-radius: 100px; font-weight: 600; z-index: 9999; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.3); max-width: 90%; font-size: 0.9rem; }
-    .toast.success { background: #16A34A; }
-    .toast.error { background: #EF4444; }
+        .drawer .drawer-nav a .icon {
+            font-size: 20px;
+            width: 28px;
+            text-align: center;
+        }
 
-    /* ===== PAYMENT / BID / HISTORY (existing features) ===== */
-    .bank-box { background: #F8FAFC; border-radius: 12px; padding: 14px; margin-bottom: 16px; font-size: 0.9rem; border: 1px solid #E9EDF2; }
-    .bank-box p { margin: 4px 0; }
-    .auction-winner-box { background: linear-gradient(135deg, #FEF3C7, #FDE68A); border: 2px solid #F59E0B; border-radius: 16px; padding: 14px; margin-bottom: 16px; text-align: center; }
-    .auction-winner-box h4 { color: #92400E; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
-    .auction-winner-box .winner-name { font-size: 1.15rem; font-weight: 700; color: #78350F; margin: 4px 0; }
-    .auction-winner-box .winner-details { font-size: 0.8rem; color: #92400E; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th, td { padding: 10px 8px; border-bottom: 1px solid #F0F0F0; text-align: left; }
-    th { font-size: 0.7rem; text-transform: uppercase; color: #9B9B9B; font-weight: 600; }
-    .btn-outline { padding: 10px 18px; border: 1px solid #E0E0E0; background: white; color: #1A1A1A; border-radius: 100px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }
-    .btn-outline:hover { border-color: #5B54D6; color: #5B54D6; }
-    .btn-secondary { padding: 10px 18px; background: #F5A623; color: white; border: none; border-radius: 100px; font-weight: 700; font-size: 0.85rem; cursor: pointer; width: 100%; margin-top: 8px; transition: all 0.2s; }
-    .btn-secondary:hover { background: #E09215; }
-    .small-note { font-size: 0.75rem; color: #9B9B9B; margin-top: 4px; }
+        .drawer .drawer-nav a .badge-nav {
+            background: var(--danger);
+            color: white;
+            font-size: 10px;
+            padding: 1px 8px;
+            border-radius: 12px;
+            margin-left: auto;
+            font-weight: 600;
+        }
 
-    /* ===== CYCLE SELECTOR (Pay/Bid dropdown) ===== */
-    .cycle-select { width: 100%; padding: 12px 14px; border: 1px solid #E0E0E0; border-radius: 12px; font-size: 0.95rem; background: white; margin-bottom: 12px; }
-  </style>
+        .drawer .drawer-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 8px 20px;
+        }
+
+        .drawer .drawer-footer {
+            padding: 16px 20px 20px;
+            border-top: 1px solid var(--border);
+            margin-top: 4px;
+        }
+
+        .drawer .drawer-footer button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #fee2e2;
+            color: var(--danger);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.2s;
+        }
+        .drawer .drawer-footer button:hover {
+            background: #fecaca;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 720px;
+            margin: 16px auto;
+            padding: 0 16px;
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title .badge {
+            font-size: 11px;
+            background: var(--border);
+            padding: 2px 12px;
+            border-radius: 20px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* ===== INPUTS ===== */
+        input,
+        select {
+            width: 100%;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            font-size: 14px;
+            box-sizing: border-box;
+            background: #fafbfc;
+            transition: 0.2s;
+        }
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        button.primary {
+            background: var(--primary);
+            color: white;
+        }
+        button.success {
+            background: var(--secondary);
+            color: white;
+        }
+        button.danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 500;
+            max-width: 400px;
+            text-align: center;
+            opacity: 0;
+            transition: 0.3s ease;
+            font-size: 14px;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.success {
+            border-left: 4px solid var(--secondary);
+        }
+        .toast.error {
+            border-left: 4px solid var(--danger);
+        }
+        .toast.warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+        }
+        .loading .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3.5px solid var(--border);
+            border-top: 3.5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 14px;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== BADGES ===== */
+        .badge-status {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            letter-spacing: 0.3px;
+        }
+        .badge-status.paid {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .badge-status.pending {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .badge-status.won {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .badge-status.full {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .badge-status.success {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .badge-status.rejected {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        /* ===== COMMITTEE SELECTOR ===== */
+        .committee-selector {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .committee-selector select {
+            flex: 1;
+            min-width: 180px;
+            margin-bottom: 0;
+            background: #fafbfc;
+            padding: 12px 16px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .committee-selector .kist-badge {
+            background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            border: 1.5px solid #c7d2fe;
+            white-space: nowrap;
+        }
+
+        /* ===== COMMITTEE INFO BOX ===== */
+        .committee-info-box {
+            background: linear-gradient(135deg, #f8faff, #eef2ff);
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin: 12px 0 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 16px;
+            border: 1px solid #e0e7ff;
+        }
+
+        .committee-info-box .item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+        }
+        .committee-info-box .item .label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .committee-info-box .item .value {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* ===== GROUP USER INVEST ===== */
+        .invest-box {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin: 12px 0 0;
+            border: 1.5px solid #bbf7d0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .invest-box .invest-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #15803d;
+        }
+        .invest-box .invest-amount {
+            font-size: 18px;
+            font-weight: 700;
+            color: #15803d;
+        }
+        .invest-box .invest-count {
+            font-size: 13px;
+            color: #15803d;
+            opacity: 0.8;
+        }
+
+        /* ===== COMMITTEE FULL BADGE ===== */
+        .committee-full-badge {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+            border: 1.5px solid #f59e0b;
+        }
+
+        /* ===== MEMBER ITEM ===== */
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .member-item:last-child {
+            border-bottom: none;
+        }
+
+        .member-info strong {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .member-info .phone-text {
+            color: var(--text-muted);
+            font-size: 12px;
+            display: block;
+            margin-top: 1px;
+        }
+        .member-info .kist-text {
+            color: var(--text-muted);
+            font-size: 12px;
+            display: block;
+        }
+
+        .member-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== PAYMENT STATUS ===== */
+        .payment-status-box {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 6px 0;
+        }
+        .payment-status-box .icon {
+            font-size: 44px;
+        }
+        .payment-status-box .status-text {
+            font-size: 17px;
+            font-weight: 700;
+            margin: 6px 0;
+        }
+        .payment-status-box .sub-text {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .payment-status-box.pending {
+            background: #fffbeb;
+            border: 1.5px solid #fcd34d;
+        }
+        .payment-status-box.success {
+            background: #ecfdf5;
+            border: 1.5px solid #34d399;
+        }
+        .payment-status-box.rejected {
+            background: #fef2f2;
+            border: 1.5px solid #f87171;
+        }
+        .payment-status-box.none {
+            background: #f8fafc;
+            border: 1.5px dashed #d1d5db;
+        }
+        .payment-status-box.full {
+            background: #fef3c7;
+            border: 1.5px solid #f59e0b;
+        }
+
+        /* ===== BANK DETAILS ===== */
+        .bank-details {
+            background: #f8fafc;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            margin-bottom: 14px;
+        }
+        .bank-details .row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+            flex-wrap: wrap;
+            gap: 4px;
+            font-size: 13px;
+        }
+        .bank-details .label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+        .bank-details .value {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* ===== PAYMENT HISTORY ===== */
+        .payment-history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .payment-history-item:last-child {
+            border-bottom: none;
+        }
+        .payment-history-item .ph-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .payment-history-item .ph-left .ph-amount {
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .payment-history-item .ph-left .ph-utr {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .payment-history-item .ph-left .ph-date {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .payment-history-item .ph-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+        .info-text {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .warning-text {
+            color: var(--danger);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .admin-link {
+            text-align: center;
+            margin-top: 16px;
+        }
+        .admin-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: #eef2ff;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        .admin-link a:hover {
+            background: #e0e7ff;
+        }
+
+        /* ===== TAB CONTENT ===== */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.25s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .committee-info-box {
+                grid-template-columns: 1fr 1fr;
+                gap: 4px 12px;
+                font-size: 12px;
+                padding: 12px 14px;
+            }
+            .committee-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .committee-selector select {
+                min-width: unset;
+            }
+            .committee-selector .kist-badge {
+                text-align: center;
+                white-space: normal;
+            }
+            .member-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .member-right {
+                justify-content: flex-start;
+            }
+            header .left .brand {
+                font-size: 15px;
+            }
+            header .right .user-name {
+                font-size: 12px;
+            }
+            header .right .avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 13px;
+            }
+            .drawer {
+                width: 270px;
+            }
+            .invest-box {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            .payment-history-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .payment-history-item .ph-right {
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 400px) {
+            header {
+                padding: 8px 12px;
+            }
+            header .left {
+                gap: 8px;
+            }
+            header .left .brand {
+                font-size: 12px;
+            }
+            header .left .brand small {
+                font-size: 8px;
+            }
+            header .right .user-name {
+                display: none;
+            }
+            .container {
+                padding: 0 10px;
+            }
+            .card {
+                padding: 16px;
+            }
+            .committee-info-box {
+                grid-template-columns: 1fr;
+                gap: 2px;
+            }
+        }
+
+        .amount-highlight {
+            font-weight: 700;
+            color: var(--primary);
+        }
+    </style>
 </head>
 <body>
-  <!-- TOAST -->
-  <div id="toast" class="toast"></div>
 
-  <!-- ============ AUTH SECTION ============ -->
-  <div id="authSection" class="auth-container" style="display:none;">
-    <div class="auth-card">
-      <h2 id="authTitle">🔐 Login</h2>
-      <form id="authForm">
-        <div class="auth-form-group" id="nameGroup" style="display: none;">
-          <label>👤 Pura Naam</label>
-          <input type="text" id="authName" placeholder="Jaise: Rajesh Kumar">
-        </div>
-        <div class="auth-form-group">
-          <label>📧 Gmail ID</label>
-          <input type="email" id="authEmail" placeholder="example@gmail.com" required>
-        </div>
-        <div class="auth-form-group">
-          <label>📱 Mobile Number</label>
-          <input type="tel" id="authPhone" placeholder="9876543210" required pattern="[0-9]{10}">
-        </div>
-        <div class="auth-form-group">
-          <label>🔑 Password</label>
-          <input type="password" id="authPassword" placeholder="●●●●●●" required minlength="6">
-          <button type="button" class="password-toggle" onclick="togglePassword()">👁️</button>
-        </div>
-        <button type="submit" class="primary-btn" id="authBtn" style="margin-top:8px;">Login</button>
-      </form>
-      <p class="auth-toggle" id="authToggleText">Naya account? <span onclick="toggleAuthMode(true)">Register karein</span></p>
-    </div>
-  </div>
-
-  <!-- ============ APP SECTION ============ -->
-  <div id="appSection" class="app-container" style="display:none;">
-
-    <!-- ===== DASHBOARD PAGE ===== -->
-    <div id="page-dashboard" class="page active">
-      <div class="app-header" style="margin: -16px -16px 16px;">
+    <!-- ===== HEADER ===== -->
+    <header>
         <div class="left">
-          <h1>Dashboard</h1>
-        </div>
-        <div class="actions">
-          <button title="Profile" onclick="showToast('👋 ' + (currentUserData?.name || 'User'), 'success')">👤</button>
-          <button title="Settings" onclick="showToast('⚙️ Settings coming soon', 'success')">⚙️</button>
-          <button title="Logout" onclick="logoutUser()">🚪</button>
-        </div>
-      </div>
-
-      <!-- Cycle Status Donut -->
-      <div class="card donut-card">
-        <h2>Cycle Status</h2>
-        <div class="donut-wrap">
-          <canvas id="cycleStatusChart"></canvas>
-          <div class="donut-center">
-            <div class="lbl">Active</div>
-            <div class="val" id="donutActiveVal">0</div>
-          </div>
-        </div>
-        <div class="donut-legend">
-          <div class="item"><span class="dot" style="background:#3B82F6;"></span>Active</div>
-          <div class="item"><span class="dot" style="background:#4ADE80;"></span>Completed</div>
-        </div>
-      </div>
-
-      <!-- Total Monthly Pot -->
-      <div class="pot-card">
-        <div class="pot-icon">💰</div>
-        <div>
-          <div class="lbl">Total Monthly Pot</div>
-          <div class="amount" id="totalMonthlyPot">₹0</div>
-        </div>
-      </div>
-
-      <!-- Collection Progress -->
-      <div class="section-h">Collection Progress</div>
-      <div id="collectionProgressList"></div>
-
-      <!-- Quick Actions -->
-      <div class="section-h">Quick Actions</div>
-      <button class="quick-action" onclick="navigate('pay')">
-        <div class="icon-box" style="background:rgba(245,166,35,0.2);">💳</div>
-        <span class="label">Pay Now</span>
-        <span class="arrow">›</span>
-      </button>
-      <button class="quick-action" onclick="navigate('auction')">
-        <div class="icon-box" style="background:rgba(184,169,232,0.25);">🏷️</div>
-        <span class="label">Boli / Auction</span>
-        <span class="arrow">›</span>
-      </button>
-      <button class="quick-action" onclick="navigate('history')">
-        <div class="icon-box" style="background:rgba(78,205,196,0.2);">📜</div>
-        <span class="label">My History</span>
-        <span class="arrow">›</span>
-      </button>
-    </div>
-
-    <!-- ===== CYCLE DETAIL PAGE ===== -->
-    <div id="page-cycle-detail" class="page">
-      <div class="app-header" style="margin: -16px -16px 16px;">
-        <div class="left">
-          <button class="back-btn" onclick="navigate('dashboard')">←</button>
-          <h1 id="cdTitle">Cycle</h1>
-        </div>
-      </div>
-
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:start;">
-          <div>
-            <div style="font-size:0.7rem;color:#9B9B9B;font-weight:600;text-transform:uppercase;">Total Pot</div>
-            <div style="font-size:1.7rem;font-weight:800;color:#1A1A1A;" id="cdTotalPot">₹0</div>
-          </div>
-          <div style="text-align:right;">
-            <div style="font-size:0.7rem;color:#9B9B9B;font-weight:600;text-transform:uppercase;">Progress</div>
-            <div style="font-size:1.7rem;font-weight:800;color:#5B54D6;" id="cdProgress">0%</div>
-          </div>
-        </div>
-        <div class="bar" style="width:100%;height:8px;background:#F0F0F0;border-radius:20px;overflow:hidden;margin-top:8px;">
-          <div id="cdProgressFill" style="height:100%;background:#5B54D6;border-radius:20px;transition:width 0.6s ease;width:0%;"></div>
-        </div>
-        <div class="mini-stats">
-          <div class="mini-stat">
-            <div class="ico" style="background:rgba(245,166,35,0.15);">💰</div>
-            <div class="val" id="cdMonthly">₹0</div>
-            <div class="lbl">Monthly</div>
-          </div>
-          <div class="mini-stat">
-            <div class="ico" style="background:rgba(184,169,232,0.2);">👥</div>
-            <div class="val" id="cdMembersCount">0</div>
-            <div class="lbl">Members</div>
-          </div>
-          <div class="mini-stat">
-            <div class="ico" style="background:rgba(78,205,196,0.2);">📅</div>
-            <div class="val" id="cdDuration">0</div>
-            <div class="lbl">Months</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="tabs">
-        <button class="active" onclick="switchDetailTab('members', this)">👥 Members</button>
-        <button onclick="switchDetailTab('payments', this)">💳 Payments</button>
-      </div>
-
-      <div class="card" style="padding: 0;">
-        <div id="cdMembersList"></div>
-        <div id="cdPaymentsList" style="display:none;"></div>
-      </div>
-    </div>
-
-    <!-- ===== PAYMENT PAGE ===== -->
-    <div id="page-pay" class="page">
-      <div class="app-header" style="margin: -16px -16px 16px;">
-        <div class="left">
-          <button class="back-btn" onclick="navigate('dashboard')">←</button>
-          <h1>Pay Now</h1>
-        </div>
-      </div>
-      <div class="card">
-        <div style="font-size:0.85rem;color:#6B6B6B;margin-bottom:6px;font-weight:500;">Select Cycle</div>
-        <select id="paymentCycleSelect" class="cycle-select"></select>
-
-        <div class="bank-box">
-          <p><strong>UPI:</strong> <span id="dispUpi">---</span></p>
-          <p><strong>Account:</strong> <span id="dispAccName">---</span></p>
-          <p><strong>Acc No:</strong> <span id="dispAccNo">---</span></p>
-          <p><strong>IFSC:</strong> <span id="dispIfsc">---</span></p>
-        </div>
-
-        <form id="paymentForm">
-          <div class="auth-form-group">
-            <label>₹ Amount <span style="color:#EF4444;">*</span></label>
-            <input type="number" id="amount" placeholder="Enter amount" min="1" required>
-          </div>
-          <div class="auth-form-group">
-            <label>UTR / Reference ID <span style="color:#EF4444;">*</span></label>
-            <input type="text" id="utr" placeholder="Jaise: 123456789012" maxlength="12" required>
-            <p class="small-note">⚠️ UTR number dalna zaroori hai</p>
-          </div>
-          <button type="submit" class="primary-btn" id="submitPayBtn">✅ Submit Proof</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- ===== AUCTION PAGE ===== -->
-    <div id="page-auction" class="page">
-      <div class="app-header" style="margin: -16px -16px 16px;">
-        <div class="left">
-          <button class="back-btn" onclick="navigate('dashboard')">←</button>
-          <h1>Boli / Auction</h1>
-        </div>
-      </div>
-      <div class="card">
-        <div style="font-size:0.85rem;color:#6B6B6B;margin-bottom:6px;font-weight:500;">Select Cycle</div>
-        <select id="auctionCycleSelect" class="cycle-select" onchange="renderAuction()"></select>
-
-        <div class="auction-winner-box">
-          <h4>🏆 Highest Bidder</h4>
-          <div class="winner-name" id="highestBidderName">Abhi tak koi boli nahi lagi</div>
-          <div class="winner-details" id="highestBidderDetails">Discount: ₹0 | Pot: ₹0</div>
-        </div>
-
-        <div id="payoutPreview" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:12px;padding:10px 14px;margin-bottom:16px;text-align:center;display:none;">
-          <span style="font-size:0.75rem;color:#6B6B6B;">Your Payout (Approx):</span>
-          <span id="payoutPreviewAmt" style="font-size:1.2rem;font-weight:800;color:#059669;display:block;">₹0</span>
-        </div>
-        <div id="payoutWarning" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:12px;padding:10px 14px;margin-bottom:16px;text-align:center;display:none;">
-          <span style="font-size:0.8rem;color:#EF4444;font-weight:700;">⚠️ Payout ₹0 hoga! Discount kam karein.</span>
-        </div>
-
-        <form id="bidForm">
-          <div class="auth-form-group">
-            <label>🏷️ Discount Amount <span style="color:#EF4444;">*</span></label>
-            <input type="number" id="bidDiscount" placeholder="Kitna discount chhodenge?" min="1" required oninput="checkPayoutPreview()">
-            <p class="small-note">💡 Sabse zyada discount = sabse badi boli.</p>
-          </div>
-          <button type="submit" class="btn-secondary" id="submitBidBtn">🔨 Submit Boli</button>
-        </form>
-
-        <div style="margin-top:20px;">
-          <div style="font-size:0.95rem;font-weight:700;margin-bottom:8px;">📜 Is Month Ki Boli List</div>
-          <table>
-            <thead><tr><th>Member</th><th>Discount</th><th>Payout</th><th>Status</th></tr></thead>
-            <tbody id="auctionTableBody"><tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ===== HISTORY PAGE ===== -->
-    <div id="page-history" class="page">
-      <div class="app-header" style="margin: -16px -16px 16px;">
-        <div class="left">
-          <button class="back-btn" onclick="navigate('dashboard')">←</button>
-          <h1>My History</h1>
-        </div>
-      </div>
-      <div class="card">
-        <div style="margin-bottom:10px;">
-          <button class="btn-outline" onclick="exportExcel()">📊 Excel Download</button>
-        </div>
-      </div>
-
-      <div class="section-h">🔨 Boli History</div>
-      <div class="card">
-        <table>
-          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
-          <tbody id="bidHistoryTableBody"><tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
-        </table>
-      </div>
-
-      <div class="section-h">💰 Payment History</div>
-      <div class="card">
-        <table>
-          <thead><tr><th>Cycle</th><th>Month</th><th>Amount</th><th>Status</th></tr></thead>
-          <tbody id="paymentHistoryTableBody"><tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Loading...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, push, set, remove, update, onValue, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-    // ============ FIREBASE CONFIG ============
-    const firebaseConfig = {
-      apiKey: "AIzaSyDT1Gl3Z_mLFaY6i0e01TKX3YUtVrplew8",
-      authDomain: "my-hellping.firebaseapp.com",
-      databaseURL: "https://my-hellping-default-rtdb.firebaseio.com",
-      projectId: "my-hellping",
-      storageBucket: "my-hellping.firebasestorage.app",
-      messagingSenderId: "537498438505",
-      appId: "1:537498438505:web:204dc1653c612edc75cbf8"
-    };
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-
-    // ============ GLOBAL STATE ============
-    let currentUserData = null;
-    let isRegisterMode = false;
-    let allData = { users: {}, cycles: {}, bids: {}, bankDetails: {} };
-    let currentCycleDetail = null;
-    let donutChart = null;
-    let myHistoryData = [];
-
-    // Expose for HTML inline handlers
-    window.currentUserData = null;
-
-    // ============ HELPERS ============
-    function fmtINR(n) {
-      return '₹' + Number(n || 0).toLocaleString('en-IN');
-    }
-    function fmtMonthYear(dateStr) {
-      if (!dateStr) return '-';
-      try {
-        const d = new Date(dateStr);
-        if (isNaN(d)) return dateStr;
-        return d.toLocaleString('default', { month: 'short', year: 'numeric' });
-      } catch { return dateStr; }
-    }
-    function getCurrentMonth() {
-      const m = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-      const d = new Date();
-      return m[d.getMonth()] + " " + d.getFullYear();
-    }
-    function showToast(msg, kind='success') {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.className = 'toast ' + kind;
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 2800);
-    }
-    window.showToast = showToast;
-
-    // ============ NAVIGATION ============
-    window.navigate = function(pageId) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      const target = document.getElementById('page-' + pageId);
-      if (target) target.classList.add('active');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-      // Page-specific renders
-      if (pageId === 'dashboard') renderDashboard();
-
-      if (pageId === 'pay') renderPaymentCycleSelect();
-      else if (pageId === 'auction') { renderAuctionCycleSelect(); renderAuction(); }
-      if (pageId === 'history') renderHistory();
-
-    };
-
-    // ============ AUTH ============
-    window.togglePassword = function() {
-      const p = document.getElementById('authPassword');
-      const b = document.querySelector('.password-toggle');
-      if (p.type === 'password') { p.type = 'text'; b.textContent = '🙈'; }
-      else { p.type = 'password'; b.textContent = '👁️'; }
-    };
-
-    window.toggleAuthMode = function(reg) {
-      isRegisterMode = reg;
-      document.getElementById('authTitle').innerText = reg ? "📝 Register" : "🔐 Login";
-      document.getElementById('nameGroup').style.display = reg ? "block" : "none";
-      document.getElementById('authBtn').innerText = reg ? "Register" : "Login";
-      document.getElementById('authToggleText').innerHTML = reg
-        ? `Already have account? <span onclick="toggleAuthMode(false)">Login</span>`
-        : `New user? <span onclick="toggleAuthMode(true)">Register</span>`;
-    };
-
-    document.getElementById('authForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('authEmail').value;
-      const password = document.getElementById('authPassword').value;
-      const phone = document.getElementById('authPhone').value;
-      const name = document.getElementById('authName').value;
-
-      try {
-        if (isRegisterMode) {
-          const res = await createUserWithEmailAndPassword(auth, email, password);
-          await set(ref(db, 'users/' + res.user.uid), {
-            name, email, phone, uid: res.user.uid, role: 'member', createdAt: Date.now()
-          });
-          showToast("✅ Account ban gaya!", "success");
-        } else {
-          await signInWithEmailAndPassword(auth, email, password);
-          showToast("✅ Login successful!", "success");
-        }
-      } catch (err) {
-        showToast("❌ " + err.message, "error");
-      }
-    });
-
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        document.getElementById('authSection').style.display = 'none';
-        document.getElementById('appSection').style.display = 'block';
-        const snap = await get(child(ref(db), `users/${user.uid}`));
-        if (snap.exists()) {
-          currentUserData = snap.val();
-        } else {
-          currentUserData = { email: user.email, uid: user.uid, name: user.email };
-        }
-        window.currentUserData = currentUserData;
-        listenToData();
-      } else {
-        document.getElementById('authSection').style.display = 'block';
-        document.getElementById('appSection').style.display = 'none';
-        currentUserData = null;
-        window.currentUserData = null;
-      }
-    });
-
-    window.logoutUser = () => signOut(auth);
-
-    // ============ REAL-TIME DATA LISTENER ============
-    function listenToData() {
-      onValue(ref(db), (snap) => {
-        if (!snap.exists()) {
-          allData = { users: {}, cycles: {}, bids: {}, bankDetails: {} };
-        } else {
-          const d = snap.val();
-          allData = {
-            users: d.users || {},
-            cycles: d.cycles || {},
-            bids: d.bids || {},
-            bankDetails: d.bankDetails || {}
-          };
-        }
-        // Refresh current page
-        const activePage = document.querySelector('.page.active');
-        if (activePage) {
-          const id = activePage.id.replace('page-', '');
-          if (id === 'dashboard') renderDashboard();
-
-          else if (id === 'pay') renderPaymentCycleSelect();
-          else if (id === 'auction') { renderAuctionCycleSelect(); renderAuction(); }
-          else if (id === 'history') renderHistory();
-          else if (id === 'cycle-detail' && currentCycleDetail) renderCycleDetail(currentCycleDetail);
-        }
-      });
-    }
-
-    // ============ DASHBOARD RENDER ============
-    function getCyclesArray() {
-      return Object.entries(allData.cycles || {}).map(([id, c]) => ({ id, ...c }));
-    }
-
-    function renderDashboard() {
-      const cycles = getCyclesArray();
-      const active = cycles.filter(c => (c.status || 'Active') === 'Active');
-      const completed = cycles.filter(c => c.status === 'Completed');
-
-      // Donut
-      document.getElementById('donutActiveVal').innerText = active.length;
-      renderDonutChart(active.length, completed.length);
-
-      // Total Monthly Pot = sum of collected (approved payments) across all active cycles (all time, not just current month)
-      let totalPot = 0;
-      active.forEach(c => {
-        const payments = c.payments || {};
-        Object.values(payments).filter(p => p.status === 'Approved')
-          .forEach(p => { totalPot += Number(p.amount || 0); });
-      });
-      document.getElementById('totalMonthlyPot').innerText = fmtINR(totalPot);
-
-      // Collection Progress
-      const listEl = document.getElementById('collectionProgressList');
-      listEl.innerHTML = '';
-      if (cycles.length === 0) {
-        listEl.innerHTML = `<div class="card"><div class="empty"><div class="emoji">🐷</div><div class="text">Koi cycle nahi hai</div><div class="hint">Admin se naya cycle banwane ko kahein</div></div></div>`;
-        return;
-      }
-      // Collection Progress - sort: Active first, then Completed
-      const sortedCycles = [...active, ...completed];
-      sortedCycles.forEach(c => {
-        const isCompleted = (c.status === 'Completed');
-        const totalMembers = Number(c.totalMembers || 0);
-        const monthlyAmount = Number(c.monthlyAmount || 0);
-        const monthlyTarget = monthlyAmount * totalMembers;
-        const allCollected = calcCycleCollection(c);
-
-        // COUNT-BASED: har totalMembers ke batch ke hisaab se progress
-        let currentBatchCollected, pct, isBatchComplete;
-        if (totalMembers > 0) {
-          const approvedCount = allCollected / monthlyAmount; // kitne approved payments (amount / per-member-amount)
-          const batchesCompleted = Math.floor(approvedCount / totalMembers);
-          const currentBatchApproved = approvedCount % totalMembers;
-          currentBatchCollected = currentBatchApproved * monthlyAmount;
-          pct = Math.min(100, Math.round((currentBatchApproved / totalMembers) * 100));
-          isBatchComplete = (currentBatchApproved === 0 && batchesCompleted > 0 && c.status !== 'Completed');
-        } else {
-          currentBatchCollected = allCollected;
-          pct = 0;
-          isBatchComplete = false;
-        }
-
-        // Agar batch complete hai aur cycle active hai → green card dikhao
-        const showGreen = isCompleted || isBatchComplete;
-        const cardStyle = showGreen ? 'background:linear-gradient(135deg, #ECFDF5, #D1FAE5) !important;border:2px solid #6EE7B7 !important;' : '';
-        const fillColor = showGreen ? '#34D399' : '#5B54D6';
-        const showPct = showGreen ? 0 : pct;
-        const statusTag = showGreen ? '<span style="background:rgba(16,185,129,0.2);color:#065F46;font-size:0.65rem;padding:2px 8px;border-radius:6px;font-weight:700;margin-left:6px;">✅ Complete</span>' : '';
-        const collectedLabel = showGreen ? 'Batch Done' : (currentBatchCollected > 0 ? 'Collected' : 'Collected');
-        const collectedAmt = showGreen ? fmtINR(monthlyTarget) : fmtINR(currentBatchCollected);
-        const html = `
-          <div class="cycle-card" onclick="openCycleDetail('${c.id}')" style="${cardStyle}">
-            <div class="row1">
-              <div class="amount">${(monthlyTarget).toLocaleString('en-IN')}${statusTag}</div>
-              <div class="pct" style="color:${showGreen ? '#059669' : '#5B54D6'};">${showPct}%</div>
+            <button class="menu-icon" onclick="toggleDrawer()">☰</button>
+            <div class="brand">
+                💰 Gram Invest
+                <small>Group Investment Platform</small>
             </div>
-            <div class="meta">${fmtINR(monthlyAmount)} / Member • ${totalMembers} Members</div>
-            <div class="bar"><div class="fill" style="width:${showPct}%;background:${fillColor};"></div></div>
-            <div class="row3">
-              <span class="collected">${collectedLabel}: ${collectedAmt}</span>
-              <span class="target">Target: ${fmtINR(monthlyTarget)}</span>
+        </div>
+        <div class="right">
+            <span class="user-name" id="headerUserName">Guest</span>
+            <span class="avatar" id="headerAvatar">G</span>
+        </div>
+    </header>
+
+    <!-- ===== DRAWER / SIDEBAR ===== -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+    <div class="drawer" id="drawer">
+        <div class="drawer-header">
+            <button class="drawer-close" onclick="closeDrawer()">✕</button>
+            <div class="avatar-lg" id="drawerAvatar">G</div>
+            <div class="drawer-name" id="drawerName">Guest</div>
+            <div class="drawer-phone" id="drawerPhone">Not Logged In</div>
+        </div>
+        <div class="drawer-nav">
+            <a class="active" onclick="navigateTo('home'); closeDrawer();">
+                <span class="icon">🏠</span> Home
+            </a>
+            <a onclick="navigateTo('members'); closeDrawer();">
+                <span class="icon">👥</span> Members
+                <span class="badge-nav" id="memberBadgeNav">0</span>
+            </a>
+            <a onclick="navigateTo('history'); closeDrawer();">
+                <span class="icon">🏆</span> History
+                <span class="badge-nav" id="historyBadgeNav">0</span>
+            </a>
+            <a onclick="navigateTo('upcoming'); closeDrawer();">
+                <span class="icon">⏳</span> Upcoming
+                <span class="badge-nav" id="upcomingBadgeNav">0</span>
+            </a>
+            <a onclick="navigateTo('payment'); closeDrawer();">
+                <span class="icon">💳</span> Payment
+            </a>
+        </div>
+        <div class="drawer-divider"></div>
+        <div class="drawer-footer">
+            <button onclick="userLogout(); closeDrawer();">
+                🚪 Logout
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== CONTAINER ===== -->
+    <div class="container">
+
+        <!-- ===== LOGIN ===== -->
+        <div id="loginCard" class="card">
+            <div class="card-title">🔐 Member Login</div>
+            <input type="text" id="loginName" placeholder="Apna Naam Likhein">
+            <input type="tel" id="loginPhone" placeholder="Mobile Number">
+            <button class="primary" onclick="userLogin()">🚪 Login</button>
+            <p style="margin-top:12px;font-size:12px;color:var(--text-muted);text-align:center;">
+                ⚠️ Agar aap member nahi hain, toh Admin se contact karein.
+            </p>
+        </div>
+
+        <!-- ===== LOADING ===== -->
+        <div id="loadingIndicator" class="loading hidden">
+            <div class="spinner"></div>
+            <p>⏳ Data load ho raha hai...</p>
+        </div>
+
+        <!-- ===== MAIN APP ===== -->
+        <div id="mainApp" class="hidden">
+
+            <!-- ===== COMMITTEE SELECTOR ===== -->
+            <div class="card">
+                <div class="card-title">🏛️ Select Committee</div>
+                <div class="committee-selector">
+                    <select id="committeeSelect" onchange="switchCommittee()">
+                        <option value="">-- Select Committee --</option>
+                    </select>
+                    <span class="kist-badge" id="kistBadge">💰 Kist: ₹0</span>
+                </div>
+
+                <div id="committeeInfoBox" class="committee-info-box hidden">
+                    <div class="item">
+                        <span class="label">📋 Committee:</span>
+                        <span class="value" id="infoCommitteeName">-</span>
+                    </div>
+                    <div class="item">
+                        <span class="label">👤 Admin:</span>
+                        <span class="value" id="infoAdminName">-</span>
+                    </div>
+                    <div class="item">
+                        <span class="label">💰 Kist:</span>
+                        <span class="value" id="infoKistAmount">₹0</span>
+                    </div>
+                    <div class="item">
+                        <span class="label">👥 Members:</span>
+                        <span class="value" id="infoMemberCount">0</span>
+                    </div>
+                    <div class="item">
+                        <span class="label">📊 Status:</span>
+                        <span class="value" id="infoCommitteeStatus">Active</span>
+                    </div>
+                </div>
+
+                <!-- Group User Invest -->
+                <div id="investBox" class="invest-box hidden">
+                    <div>
+                        <span class="invest-label">💰 Group User Invest</span>
+                        <span class="invest-count" id="investMemberCount">0 Members</span>
+                    </div>
+                    <span class="invest-amount" id="investTotalAmount">₹0</span>
+                </div>
             </div>
-          </div>
-        `;
-        listEl.insertAdjacentHTML('beforeend', html);
-      });
-    }
 
-    function calcCycleCollection(cycle) {
-      const payments = cycle.payments || {};
-      return Object.values(payments)
-        .filter(p => p.status === 'Approved')
-        .reduce((s, p) => s + Number(p.amount || 0), 0);
-    }
+            <!-- ================================ -->
+            <!-- ===== TAB: HOME ===== -->
+            <!-- ================================ -->
+            <div id="tab-home" class="tab-content active">
 
-    function renderDonutChart(active, completed) {
-      const canvas = document.getElementById('cycleStatusChart');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
+                <!-- Payment Form -->
+                <div class="card">
+                    <div class="card-title">
+                        💳 Pay Now
+                        <span id="committeeFullBadge" class="committee-full-badge hidden">🔒 Committee Full</span>
+                    </div>
 
-      // Empty state
-      const totalVal = active + completed;
-      const values = totalVal === 0 ? [1] : [active, completed];
-      const colors = totalVal === 0 ? ['#E0E0E0'] : ['#3B82F6', '#4ADE80'];
-      const labels = totalVal === 0 ? ['No Data'] : ['Active', 'Completed'];
+                    <div id="bankDetailsDisplay">
+                        <div class="bank-details">
+                            <div class="row"><span class="label">💰 Amount:</span><span class="value" id="displayAmount">₹0/month</span></div>
+                            <div class="row"><span class="label">📱 UPI:</span><span class="value" id="displayUPI">N/A</span></div>
+                            <div class="row"><span class="label">👤 Account:</span><span class="value" id="displayAccount">N/A</span></div>
+                            <div class="row"><span class="label">🔢 Account No:</span><span class="value" id="displayAccNo">N/A</span></div>
+                            <div class="row"><span class="label">🏛️ IFSC:</span><span class="value" id="displayIFSC">N/A</span></div>
+                        </div>
+                    </div>
 
-      if (donutChart) {
-        donutChart.data.datasets[0].data = values;
-        donutChart.data.datasets[0].backgroundColor = colors;
-        donutChart.data.labels = labels;
-        donutChart.update();
-      } else {
-        donutChart = new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: labels,
-            datasets: [{
-              data: values,
-              backgroundColor: colors,
-              borderWidth: 0,
-              cutout: '65%'
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-              tooltip: { enabled: totalVal > 0 }
+                    <label style="font-size:13px;font-weight:600;color:var(--text-muted);">₹ Amount *</label>
+                    <input type="number" id="paymentAmount" placeholder="Enter amount">
+
+                    <label style="font-size:13px;font-weight:600;color:var(--text-muted);">UTR / Reference ID *</label>
+                    <input type="text" id="paymentUtr" placeholder="Jaise: 123456789012">
+                    <p class="warning-text">⚠️ UTR number dalna zaroori hai</p>
+
+                    <button class="success" id="submitBtn" onclick="submitPayment()">✔ Submit Proof</button>
+                    <p class="info-text" style="margin-top:10px;text-align:center;">
+                        💡 Payment karne ke baad UTR number daalein. Admin verify karenge.
+                    </p>
+                </div>
+
+                <!-- Payment Status -->
+                <div class="card">
+                    <div class="card-title">📊 Payment Status</div>
+                    <div id="paymentStatusDisplay">
+                        <div class="payment-status-box none">
+                            <div class="icon">⏳</div>
+                            <div class="status-text">No Payment Submitted</div>
+                            <div class="sub-text">Pay your monthly kist to see status here.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment History -->
+                <div class="card">
+                    <div class="card-title">📜 Payment History <span class="badge" id="historyCount">0</span></div>
+                    <div id="paymentHistoryList">
+                        <p class="text-muted" style="text-align:center;padding:10px;">No payment history.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================================ -->
+            <!-- ===== TAB: MEMBERS ===== -->
+            <!-- ================================ -->
+            <div id="tab-members" class="tab-content">
+                <div class="card">
+                    <div class="card-title">👥 Members Payment Status</div>
+                    <div id="membersList"></div>
+                </div>
+            </div>
+
+            <!-- ================================ -->
+            <!-- ===== TAB: HISTORY ===== -->
+            <!-- ================================ -->
+            <div id="tab-history" class="tab-content">
+                <div class="card">
+                    <div class="card-title">🎉 Kisko Kitna Mila (History)</div>
+                    <div id="historyList" class="text-muted">Abhi tak kisi ko pool nahi mila hai.</div>
+                </div>
+            </div>
+
+            <!-- ================================ -->
+            <!-- ===== TAB: UPCOMING ===== -->
+            <!-- ================================ -->
+            <div id="tab-upcoming" class="tab-content">
+                <div class="card">
+                    <div class="card-title">⏳ Kisko Milega (Upcoming)</div>
+                    <div id="upcomingList" class="text-muted"></div>
+                </div>
+            </div>
+
+            <!-- ================================ -->
+            <!-- ===== TAB: PAYMENT ===== -->
+            <!-- ================================ -->
+            <div id="tab-payment" class="tab-content">
+                <div class="card">
+                    <div class="card-title">
+                        💳 Payment Details
+                        <span id="committeeFullBadge2" class="committee-full-badge hidden">🔒 Committee Full</span>
+                    </div>
+
+                    <div id="bankDetailsDisplay2">
+                        <div class="bank-details">
+                            <div class="row"><span class="label">💰 Amount:</span><span class="value" id="displayAmount2">₹0/month</span></div>
+                            <div class="row"><span class="label">📱 UPI:</span><span class="value" id="displayUPI2">N/A</span></div>
+                            <div class="row"><span class="label">👤 Account:</span><span class="value" id="displayAccount2">N/A</span></div>
+                            <div class="row"><span class="label">🔢 Account No:</span><span class="value" id="displayAccNo2">N/A</span></div>
+                            <div class="row"><span class="label">🏛️ IFSC:</span><span class="value" id="displayIFSC2">N/A</span></div>
+                        </div>
+                    </div>
+
+                    <label style="font-size:13px;font-weight:600;color:var(--text-muted);">₹ Amount *</label>
+                    <input type="number" id="paymentAmount2" placeholder="Enter amount">
+
+                    <label style="font-size:13px;font-weight:600;color:var(--text-muted);">UTR / Reference ID *</label>
+                    <input type="text" id="paymentUtr2" placeholder="Jaise: 123456789012">
+                    <p class="warning-text">⚠️ UTR number dalna zaroori hai</p>
+
+                    <button class="success" id="submitBtn2" onclick="submitPayment2()">✔ Submit Proof</button>
+
+                    <div style="margin-top:16px;">
+                        <div class="card-title" style="font-size:14px;border-bottom-color:var(--border);">📊 Payment Status</div>
+                        <div id="paymentStatusDisplay2">
+                            <div class="payment-status-box none">
+                                <div class="icon">⏳</div>
+                                <div class="status-text">No Payment Submitted</div>
+                                <div class="sub-text">Pay your monthly kist to see status here.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment History -->
+                    <div style="margin-top:16px;">
+                        <div class="card-title" style="font-size:14px;border-bottom-color:var(--border);">📜 Payment History</div>
+                        <div id="paymentHistoryList2">
+                            <p class="text-muted" style="text-align:center;padding:10px;">No payment history.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-link">
+                <a href="Multiple admin.html" target="_blank">🔑 Admin Panel</a>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ============================================================
+        // FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDT1Gl3Z_mLFaY6i0e01TKX3YUtVrplew8",
+            authDomain: "my-hellping.firebaseapp.com",
+            databaseURL: "https://my-hellping-default-rtdb.firebaseio.com",
+            projectId: "my-hellping",
+            storageBucket: "my-hellping.firebasestorage.app",
+            messagingSenderId: "537498438505",
+            appId: "1:537498438505:web:204dc1653c612edc75cbf8"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let committees = {};
+        let currentCommitteeId = null;
+        let currentMembers = [];
+        let currentHistory = [];
+        let currentUser = null;
+        let committeeDefaultKist = 0;
+        let committeeBankDetails = null;
+        let userPayments = [];
+        let currentPayment = null;
+        let currentTab = 'home';
+        let isCommitteeFull = false;
+        let currentLimit = 5;
+
+        // ============================================================
+        // UTILITY FUNCTIONS
+        // ============================================================
+        function validateKist(amount) {
+            let num = parseFloat(amount);
+            if (isNaN(num) || num <= 0) return 0;
+            if (num > 100000) return 100000;
+            return Math.round(num * 100) / 100;
+        }
+
+        function formatIndianCurrency(amount) {
+            if (amount === undefined || amount === null || isNaN(amount)) return '₹0';
+            let num = parseFloat(amount);
+            if (num === 0) return '₹0';
+            num = Math.round(num * 100) / 100;
+            let str = num.toString();
+            let parts = str.split('.');
+            let whole = parts[0];
+            let decimal = parts[1] || '00';
+            let lastThree = whole.slice(-3);
+            let otherNumbers = whole.slice(0, -3);
+            if (otherNumbers !== '') {
+                lastThree = ',' + lastThree;
             }
-          }
-        });
-      }
-    }
-
-    // ============ CYCLE DETAIL ============
-    window.openCycleDetail = function(cycleId) {
-      currentCycleDetail = cycleId;
-      const c = { id: cycleId, ...allData.cycles[cycleId] };
-      renderCycleDetail(cycleId);
-      navigate('cycle-detail');
-    };
-
-    function renderCycleDetail(cycleId) {
-      const c = allData.cycles[cycleId];
-      if (!c) return;
-      document.getElementById('cdTitle').innerText = c.name || 'Cycle';
-      const totalPot = Number(c.monthlyAmount || 0) * Number(c.totalMembers || 0) * Number(c.durationMonths || 1);
-      const collected = calcCycleCollection(c);
-      const pct = totalPot > 0 ? Math.min(100, Math.round((collected / totalPot) * 100)) : 0;
-      document.getElementById('cdTotalPot').innerText = fmtINR(totalPot);
-      document.getElementById('cdProgress').innerText = pct + '%';
-      document.getElementById('cdProgressFill').style.width = pct + '%';
-      document.getElementById('cdMonthly').innerText = fmtINR(c.monthlyAmount);
-      document.getElementById('cdMembersCount').innerText = c.totalMembers || 0;
-      document.getElementById('cdDuration').innerText = c.durationMonths || 0;
-
-      // Members
-      const membersEl = document.getElementById('cdMembersList');
-      const members = c.members || {};
-      const memberArr = Object.entries(members).map(([uid, m]) => ({ uid, ...m }))
-                        .sort((a, b) => (a.position || 0) - (b.position || 0));
-
-      const currentMonth = getCurrentMonth();
-      const cyclePayments = Object.values(c.payments || {});
-
-      if (memberArr.length === 0) {
-        membersEl.innerHTML = `<div class="empty"><div class="emoji">👥</div><div class="text">Abhi koi member nahi hai</div><div class="hint">Register karke members ko cycle mein add karein</div></div>`;
-      } else {
-        membersEl.innerHTML = memberArr.map(m => {
-          const status = m.turnStatus || 'Pending';
-          const cls = status === 'Received' ? 'received' : status === 'Current' ? 'current' : 'pending';
-          const rowCls = status === 'Current' ? 'current' : '';
-
-          // Is batch/month ka payment status is member ke liye
-          const myPayment = cyclePayments.find(p =>
-            p.month === currentMonth && (p.userId === m.uid || p.userPhone === m.phone)
-          );
-          let batchLbl, batchCls;
-          if (myPayment && myPayment.status === 'Approved') { batchLbl = '✅ Paid'; batchCls = 'received'; }
-          else if (myPayment) { batchLbl = '⏳ Pending Review'; batchCls = 'pending'; }
-          else { batchLbl = '❌ Not Paid'; batchCls = 'pending'; }
-
-          return `
-            <div class="member-row ${rowCls}">
-              <div class="member-pos">#${m.position || '?'}</div>
-              <div class="member-info">
-                <div class="member-name">${m.name || 'Unknown'} ${status === 'Current' ? '👑' : ''}</div>
-                <div class="member-phone">${m.phone || '-'}</div>
-              </div>
-              <div style="text-align:right;display:flex;flex-direction:column;gap:4px;align-items:flex-end;">
-                <span class="turn-badge ${cls}">${status}</span>
-                <span class="turn-badge ${batchCls}" style="font-size:0.6rem;">${batchLbl}</span>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-
-      // Payments
-      const paymentsEl = document.getElementById('cdPaymentsList');
-      const payments = c.payments || {};
-      const paymentArr = Object.entries(payments).map(([id, p]) => ({ id, ...p }))
-                          .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
-      if (paymentArr.length === 0) {
-        paymentsEl.innerHTML = `<div class="empty"><div class="emoji">💳</div><div class="text">Koi payment nahi hua</div></div>`;
-      } else {
-        paymentsEl.innerHTML = paymentArr.map(p => {
-          const s = p.status || 'Pending';
-          const cls = s === 'Approved' ? 'received' : s === 'Rejected' ? 'pending' : 'pending';
-          return `
-            <div class="member-row">
-              <div class="member-pos" style="background:rgba(74,222,128,0.15);color:#166534;">💰</div>
-              <div class="member-info">
-                <div class="member-name">${p.userName || 'Unknown'}</div>
-                <div class="member-phone">${p.month} • UTR: ${p.utr || '—'}</div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-weight:700;color:#1A1A1A;font-size:0.9rem;">${fmtINR(p.amount)}</div>
-                <span class="turn-badge ${cls}" style="margin-top:2px;display:inline-block;">${s}</span>
-              </div>
-            </div>
-          `;
-        }).join('');
-      }
-    }
-
-    window.switchDetailTab = function(tab, btn) {
-      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('cdMembersList').style.display = tab === 'members' ? 'block' : 'none';
-      document.getElementById('cdPaymentsList').style.display = tab === 'payments' ? 'block' : 'none';
-    };
-
-    // ============ CHECK IF ALL MEMBERS PAID (COUNT-BASED) ============
-    // Jab totalMembers ke barabar approved payments ho jayein (any month), cycle batch complete
-    function hasAllMembersPaid(cycle) {
-      const totalMembers = Number(cycle.totalMembers || 0);
-      if (totalMembers === 0) return true;
-      const payments = cycle.payments || {};
-      // Count ALL approved payments (not just current month) — jitne bhi mahine, kisi ne bhi kiya ho
-      const approvedCount = Object.values(payments).filter(p =>
-        p.status === 'Approved'
-      ).length;
-      // Check if approved count is at or past a multiple of totalMembers
-      // e.g., 10 members → 10, 20, 30 approved = batch complete
-      const batchesCompleted = Math.floor(approvedCount / totalMembers);
-      const currentBatchCount = approvedCount % totalMembers;
-      return { isBatchComplete: batchesCompleted > 0, currentCount: currentBatchCount, batchesCompleted, totalMembers, approvedCount };
-    }
-
-    // ============ PAYMENT ============
-    // Applies lock/unlock UI state for whichever cycle is currently selected.
-    // Called both on manual dropdown change AND every time the select is (re)rendered,
-    // so realtime data refreshes never silently re-enable an already-submitted form.
-    function updatePaymentFormState(showToastOnLock) {
-      const sel = document.getElementById('paymentCycleSelect');
-      const c = allData.cycles[sel.value];
-      const submitBtn = document.getElementById('submitPayBtn');
-      const amountEl = document.getElementById('amount');
-      const utrEl = document.getElementById('utr');
-
-      if (c) {
-        // Only auto-fill amount if the user hasn't already typed something for this cycle
-        if (!amountEl.dataset.userEdited) amountEl.value = c.monthlyAmount || '';
-        const info = hasAllMembersPaid(c);
-        const isFull = info.currentCount === 0 && info.batchesCompleted > 0;
-        const alreadyPaid = hasUserPaidThisBatch(c);
-        if (alreadyPaid) {
-          submitBtn.disabled = true;
-          submitBtn.innerText = '✅ Is Batch Mein Already Submit Kar Chuke Ho';
-          submitBtn.style.background = '#9B9B9B';
-          amountEl.disabled = true;
-          utrEl.disabled = true;
-          if (showToastOnLock) showToast('❌ Aap is batch mein pehle hi payment proof submit kar chuke ho!', 'error');
-        } else if (isFull) {
-          submitBtn.disabled = true;
-          submitBtn.innerText = '🔒 Batch Full — Payments Closed';
-          submitBtn.style.background = '#9B9B9B';
-          amountEl.disabled = true;
-          utrEl.disabled = true;
-          if (showToastOnLock) showToast('❌ Is cycle ka batch (' + info.totalMembers + ' members) pura ho chuka hai. Payment band hai.', 'error');
-        } else {
-          submitBtn.disabled = false;
-          submitBtn.innerText = '✅ Submit Proof';
-          submitBtn.style.background = '';
-          amountEl.disabled = false;
-          utrEl.disabled = false;
+            let result = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ',') + lastThree;
+            if (decimal) {
+                result += '.' + decimal.padEnd(2, '0');
+            }
+            return '₹' + result;
         }
-      } else {
-        submitBtn.disabled = false;
-        submitBtn.innerText = '✅ Submit Proof';
-        submitBtn.style.background = '';
-        amountEl.disabled = false;
-        utrEl.disabled = false;
-      }
-    }
-    window.updatePaymentFormState = updatePaymentFormState;
 
-    function renderPaymentCycleSelect() {
-      const sel = document.getElementById('paymentCycleSelect');
-      const previouslySelected = sel.value; // preserve selection across realtime rebuilds
-      const cycles = getCyclesArray().filter(c => (c.status || 'Active') === 'Active');
-      sel.innerHTML = '<option value="">-- Select Cycle --</option>' +
-        cycles.map(c => {
-          const info = hasAllMembersPaid(c);
-          const isFull = info.currentCount === 0 && info.batchesCompleted > 0;
-          const label = isFull
-            ? `🔒 ${c.name || 'Cycle'} • Batch Full — Closed`
-            : `${c.name || 'Cycle'} • ${fmtINR(c.monthlyAmount)}/month`;
-          return `<option value="${c.id}" ${isFull ? 'disabled' : ''}>${label}</option>`;
-        }).join('');
-
-      // Restore whatever cycle was selected before this rebuild (if it still exists)
-      if (previouslySelected && [...sel.options].some(o => o.value === previouslySelected)) {
-        sel.value = previouslySelected;
-      }
-
-      // Bank details
-      const bd = allData.bankDetails || {};
-      document.getElementById('dispUpi').innerText = bd.upi || '-';
-      document.getElementById('dispAccName').innerText = bd.accName || '-';
-      document.getElementById('dispAccNo').innerText = bd.accNo || '-';
-      document.getElementById('dispIfsc').innerText = bd.ifsc || '-';
-
-      // Re-apply lock state immediately for whatever is currently selected —
-      // covers initial render AND every realtime data refresh, not just manual onchange.
-      updatePaymentFormState(false);
-
-      sel.onchange = () => {
-        document.getElementById('amount').dataset.userEdited = ''; // reset auto-fill guard on cycle switch
-        updatePaymentFormState(true);
-      };
-    }
-
-    // Kya current user ne is cycle ke current batch/month ke liye already payment proof submit kar diya hai
-    function hasUserPaidThisBatch(cycle) {
-      const currentMonth = getCurrentMonth();
-      const payments = Object.values(cycle.payments || {});
-      return payments.some(p =>
-        p.month === currentMonth &&
-        (p.userId === currentUserData.uid || (currentUserData.phone && p.userPhone === currentUserData.phone))
-      );
-    }
-
-    document.getElementById('amount').addEventListener('input', function() {
-      this.dataset.userEdited = '1';
-    });
-
-    document.getElementById('paymentForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submitPayBtn');
-      const cycleId = document.getElementById('paymentCycleSelect').value;
-      const amount = Number(document.getElementById('amount').value);
-      const utr = document.getElementById('utr').value.trim();
-
-      if (!cycleId) return showToast('❌ Cycle select karein', 'error');
-      if (!amount || amount < 1) return showToast('❌ Sahi amount daalein', 'error');
-      if (!utr || utr.length < 4) return showToast('❌ UTR number daalein (min 4 chars)', 'error');
-
-      // Safety check: batch already full ho sakta hai (realtime update ki wajah se)
-      const selectedCycle = allData.cycles[cycleId];
-      if (selectedCycle) {
-        const info = hasAllMembersPaid(selectedCycle);
-        if (info.currentCount === 0 && info.batchesCompleted > 0) {
-          renderPaymentCycleSelect();
-          return showToast('❌ Is cycle ka batch pura ho chuka hai. Payment band hai.', 'error');
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => toast.classList.remove('show'), 3500);
         }
-        // Safety check: user is is batch ke liye already submit kar chuka ho sakta hai
-        if (hasUserPaidThisBatch(selectedCycle)) {
-          btn.disabled = true;
-          btn.innerText = '✅ Is Batch Mein Already Submit Kar Chuke Ho';
-          btn.style.background = '#9B9B9B';
-          return showToast('❌ Aap is batch mein pehle hi payment proof submit kar chuke ho!', 'error');
+
+        // ============================================================
+        // DRAWER
+        // ============================================================
+        function toggleDrawer() {
+            document.getElementById('drawer').classList.toggle('open');
+            document.getElementById('drawerOverlay').classList.toggle('show');
         }
-      }
 
-      btn.disabled = true;
-      btn.innerText = '⏳ Submitting...';
-
-      try {
-        const newRef = push(ref(db, `cycles/${cycleId}/payments`));
-        await set(newRef, {
-          userId: currentUserData.uid,
-          userName: currentUserData.name || currentUserData.email || 'User',
-          userPhone: currentUserData.phone || '',
-          amount,
-          utr,
-          month: getCurrentMonth(),
-          status: 'Pending',
-          timestamp: Date.now()
-        });
-        showToast('✅ Payment proof submit ho gaya!', 'success');
-        document.getElementById('amount').value = '';
-        document.getElementById('amount').dataset.userEdited = '';
-        document.getElementById('utr').value = '';
-        generateReceipt(currentUserData.name || 'User', amount, utr, getCurrentMonth(), allData.cycles[cycleId]?.name || 'Cycle');
-        // Submit hone ke baad is batch ke liye button disable hi rakho — dobara submit na ho sake
-        btn.disabled = true;
-        btn.innerText = '✅ Is Batch Mein Already Submit Kar Chuke Ho';
-        btn.style.background = '#9B9B9B';
-        document.getElementById('amount').disabled = true;
-        document.getElementById('utr').disabled = true;
-      } catch (err) {
-        showToast('❌ ' + err.message, 'error');
-        btn.disabled = false;
-        btn.innerText = '✅ Submit Proof';
-      }
-    });
-
-    function generateReceipt(name, amount, utr, month, cycleName) {
-      const html = `
-        <div style="padding:30px; font-family:Arial; max-width:400px; margin:auto; border:2px solid #5B54D6; border-radius:12px; text-align:center;">
-          <h2 style="color:#5B54D6;">💰 Payment Receipt</h2>
-          <hr style="border:1px dashed #5B54D6;">
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Cycle:</strong> ${cycleName}</p>
-          <p><strong>Amount:</strong> ₹${amount}</p>
-          <p><strong>UTR:</strong> ${utr}</p>
-          <p><strong>Month:</strong> ${month}</p>
-          <hr style="border:1px dashed #5B54D6;">
-          <p style="font-size:0.8rem; color:#6B6B6B;">✅ Payment Submitted!<br>Waiting for admin approval.</p>
-        </div>
-      `;
-      const w = window.open('', '_blank');
-      w.document.write(`<html><head><title>Receipt</title></head><body style="margin:0;padding:20px;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#F4F5F9;">${html}<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script><script>setTimeout(()=>{html2pdf().from(document.body.firstElementChild).save('Receipt_${name}_${month}.pdf');},500);<\/script></body></html>`);
-      w.document.close();
-    }
-
-    // ============ AUCTION / BOLI ============
-    function renderAuctionCycleSelect() {
-      const sel = document.getElementById('auctionCycleSelect');
-      const uid = currentUserData?.uid;
-      // Only Active cycles where:
-      // 1. Cycle is Active (not Completed)
-      // 2. User has NOT already placed a bid in this cycle (ever)
-      // 3. Current batch is complete (all members paid)
-      const cycles = getCyclesArray().filter(c => {
-        if ((c.status || 'Active') !== 'Active') return false;
-        // Has this user already placed a bid in this cycle?
-        const userHasBid = Object.values(allData.bids || {}).some(b =>
-          b.cycleId === c.id && b.userId === uid
-        );
-        if (userHasBid) return false; // User already bid → hide
-        return true;
-      });
-      const currentVal = sel.value;
-      sel.innerHTML = cycles.length === 0
-        ? '<option value="">-- Boli ke liye koi cycle nahi --</option>'
-        : '<option value="">-- Select Cycle --</option>' + cycles.map(c => `<option value="${c.id}">${c.name || 'Cycle'} • ${fmtINR(c.monthlyAmount)}/month</option>`).join('');
-      if (currentVal && cycles.find(c => c.id === currentVal)) sel.value = currentVal;
-    }
-
-    window.renderAuction = function() {
-      const cycleId = document.getElementById('auctionCycleSelect').value;
-      const table = document.getElementById('auctionTableBody');
-      const nameEl = document.getElementById('highestBidderName');
-      const detEl = document.getElementById('highestBidderDetails');
-
-      if (!cycleId) {
-        table.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;">Cycle select karein</td></tr>`;
-        nameEl.innerText = 'Koi cycle select nahi hai';
-        detEl.innerText = '-';
-        document.getElementById('payoutPreview').style.display = 'none';
-        document.getElementById('payoutWarning').style.display = 'none';
-        return;
-      }
-
-      const cycle = allData.cycles[cycleId];
-      if (!cycle) return;
-      const currentMonth = getCurrentMonth();
-      const totalPot = Number(cycle.monthlyAmount || 0) * Number(cycle.totalMembers || 0);
-
-      const bids = Object.values(allData.bids || {}).filter(b => b.cycleId === cycleId && b.month === currentMonth);
-      bids.sort((a, b) => (b.discountAmount || 0) - (a.discountAmount || 0));
-
-      if (bids.length === 0) {
-        nameEl.innerText = 'Abhi tak koi boli nahi lagi';
-        detEl.innerText = `Discount: ₹0 | Pot: ${fmtINR(totalPot)}`;
-        table.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;">🔨 Is mahine koi boli nahi lagi</td></tr>`;
-      } else {
-        const top = bids[0];
-        const payout = Math.max(0, totalPot - Number(top.discountAmount || 0));
-        nameEl.innerText = '👑 ' + (top.userName || 'Unknown');
-        detEl.innerText = `Discount: ${fmtINR(top.discountAmount)} | Payout: ${fmtINR(payout)}`;
-        table.innerHTML = bids.map(b => {
-          const p = Math.max(0, totalPot - Number(b.discountAmount || 0));
-          const bidStatus = b.status || 'Active';
-          let statusCls = '';
-          let statusLabel = bidStatus;
-          if (bidStatus === 'Approved') { statusCls = 'color:#16A34A;font-weight:700;'; statusLabel = '✅ Approved'; }
-          else if (bidStatus === 'Rejected') { statusCls = 'color:#EF4444;font-weight:700;'; statusLabel = '❌ Rejected'; }
-          else { statusCls = 'color:#F5A623;font-weight:600;'; statusLabel = '⏳ Pending'; }
-          return `<tr><td>${b.userName || 'Unknown'}</td><td><strong style="color:#F5A623;">${fmtINR(b.discountAmount)}</strong></td><td>${fmtINR(p)}</td><td style="${statusCls}font-size:0.75rem;">${statusLabel}</td></tr>`;
-        }).join('');
-      }
-
-      // Check payout preview after render
-      checkPayoutPreview();
-
-      // Check if user has a pending bid — disable button if yes
-      updateBidButtonState(cycleId, cycle);
-    };
-
-    // ============ CHECK USER PENDING BID + BATCH COMPLETE ============
-    window.updateBidButtonState = function(cycleId, cycle) {
-      const submitBtn = document.getElementById('submitBidBtn');
-      const discountInput = document.getElementById('bidDiscount');
-      if (!cycleId || !cycle) return;
-
-      // Check 1: Is batch complete? (all members paid)
-      const info = hasAllMembersPaid(cycle);
-      const batchJustComplete = (info.currentCount === 0 && info.batchesCompleted > 0);
-
-      // Check 2: Does user have a PENDING bid in the CURRENT batch?
-      // Only block if user's LATEST bid is pending (not from previous batch)
-      const uid = currentUserData?.uid;
-      const allUserBids = Object.values(allData.bids || {}).filter(b => b.cycleId === cycleId && b.userId === uid);
-      allUserBids.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-      const latestBid = allUserBids[0];
-      const userHasPendingBid = latestBid && (!latestBid.status || latestBid.status === 'Active');
-
-      if (userHasPendingBid) {
-        submitBtn.disabled = true;
-        submitBtn.innerText = '⏳ Aapki Boli Pending Hai';
-        submitBtn.style.background = '#F5A623';
-        discountInput.disabled = true;
-        discountInput.placeholder = 'Admin approval ka wait karein...';
-        document.getElementById('payoutPreview').style.display = 'none';
-        document.getElementById('payoutWarning').style.display = 'none';
-        return 'pending';
-      }
-
-      // Check 3: If NOT batch complete — don't allow bidding
-      if (!batchJustComplete) {
-        submitBtn.disabled = true;
-        submitBtn.innerText = `🔒 Sabhi ${info.totalMembers} Members Ke Payment Ka Wait Karein`;
-        submitBtn.style.background = '#9B9B9B';
-        discountInput.disabled = true;
-        discountInput.placeholder = `Batch complete hone ka wait karein (${info.currentCount}/${info.totalMembers})...`;
-        document.getElementById('payoutPreview').style.display = 'none';
-        document.getElementById('payoutWarning').style.display = 'none';
-        return 'not-ready';
-      }
-
-      // Batch complete + no pending bid → allow!
-      submitBtn.innerText = '🔨 Submit Boli';
-      submitBtn.style.background = '';
-      discountInput.disabled = false;
-      discountInput.placeholder = 'Kitna discount chhodenge?';
-      return 'ready';
-    };
-
-    // ============ PAYOUT PREVIEW ============
-    window.checkPayoutPreview = function() {
-      const cycleId = document.getElementById('auctionCycleSelect').value;
-      const discount = Number(document.getElementById('bidDiscount').value) || 0;
-      const previewEl = document.getElementById('payoutPreview');
-      const warningEl = document.getElementById('payoutWarning');
-      const previewAmt = document.getElementById('payoutPreviewAmt');
-      const submitBtn = document.getElementById('submitBidBtn');
-
-      // Don't override if button is disabled due to pending bid or batch not complete
-      if (submitBtn.innerText !== '🔨 Submit Boli') return;
-
-      if (!cycleId || discount <= 0) {
-        previewEl.style.display = 'none';
-        warningEl.style.display = 'none';
-        submitBtn.disabled = false;
-        submitBtn.innerText = '🔨 Submit Boli';
-        return;
-      }
-
-      const cycle = allData.cycles[cycleId];
-      if (!cycle) return;
-      const totalPot = Number(cycle.monthlyAmount || 0) * Number(cycle.totalMembers || 0);
-      const payout = Math.max(0, totalPot - discount);
-
-      if (payout <= 0) {
-        previewEl.style.display = 'none';
-        warningEl.style.display = 'block';
-        submitBtn.disabled = true;
-        submitBtn.innerText = '❌ Payout ₹0 — Boli Nahi Lag Sakti';
-      } else {
-        warningEl.style.display = 'none';
-        previewEl.style.display = 'block';
-        previewAmt.innerText = '₹' + payout.toLocaleString('en-IN');
-        submitBtn.disabled = false;
-        submitBtn.innerText = '🔨 Submit Boli';
-      }
-    };
-
-    document.getElementById('bidForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submitBidBtn');
-      const cycleId = document.getElementById('auctionCycleSelect').value;
-      const discount = Number(document.getElementById('bidDiscount').value);
-
-      if (!cycleId) return showToast('❌ Cycle select karein', 'error');
-      if (!discount || discount < 1) return showToast('❌ Sahi discount amount daalein', 'error');
-
-      // Check: discount should be less than total monthly pot
-      const cycle = allData.cycles[cycleId];
-      if (cycle) {
-        const totalPot = Number(cycle.monthlyAmount || 0) * Number(cycle.totalMembers || 0);
-        if (discount >= totalPot) {
-          return showToast('❌ Discount ₹' + discount.toLocaleString('en-IN') + ' total pot ₹' + totalPot.toLocaleString('en-IN') + ' se kam hona chahiye!', 'error');
+        function closeDrawer() {
+            document.getElementById('drawer').classList.remove('open');
+            document.getElementById('drawerOverlay').classList.remove('show');
         }
-      }
 
-      btn.disabled = true;
-      btn.innerText = '⏳ Submitting Bid...';
+        // ============================================================
+        // NAVIGATION
+        // ============================================================
+        function navigateTo(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('tab-' + tab);
+            if (target) target.classList.add('active');
 
-      try {
-        const newRef = push(ref(db, 'bids'));
-        await set(newRef, {
-          cycleId,
-          userId: currentUserData.uid,
-          userName: currentUserData.name || currentUserData.email || 'User',
-          userPhone: currentUserData.phone || '',
-          discountAmount: discount,
-          month: getCurrentMonth(),
-          timestamp: Date.now()
-        });
-        showToast('✅ Boli successfully lag gayi!', 'success');
-        document.getElementById('bidDiscount').value = '';
-      } catch (err) {
-        showToast('❌ ' + err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.innerText = '🔨 Submit Boli';
-      }
-    });
-
-    // ============ HISTORY ============
-    function renderHistory() {
-      const bidTable = document.getElementById('bidHistoryTableBody');
-      const paymentTable = document.getElementById('paymentHistoryTableBody');
-      const cycles = getCyclesArray();
-
-      const myPayments = [];
-      const myBids = [];
-
-      // Payments made by this user
-      cycles.forEach(c => {
-        Object.entries(c.payments || {}).forEach(([pid, p]) => {
-          if (p.userId === currentUserData.uid || p.userPhone === currentUserData.phone) {
-            myPayments.push({ ...p, cycleName: c.name, recordType: 'payment' });
-          }
-        });
-      });
-
-      // Boli (bids) placed by this user — including this month's bid
-      Object.values(allData.bids || {}).forEach(b => {
-        if (b.userId === currentUserData.uid || b.userPhone === currentUserData.phone) {
-          const cycle = allData.cycles[b.cycleId];
-          myBids.push({
-            cycleName: cycle ? cycle.name : '-',
-            month: b.month,
-            amount: b.discountAmount,
-            status: 'Boli Lagayi',
-            timestamp: b.timestamp,
-            recordType: 'bid'
-          });
+            document.querySelectorAll('.drawer-nav a').forEach(el => el.classList.remove('active'));
+            const navMap = { home: 0, members: 1, history: 2, upcoming: 3, payment: 4 };
+            const links = document.querySelectorAll('.drawer-nav a');
+            if (navMap[tab] !== undefined && links[navMap[tab]]) {
+                links[navMap[tab]].classList.add('active');
+            }
+            if (window.innerWidth <= 600) closeDrawer();
         }
-      });
 
-      myPayments.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-      myBids.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        // ============================================================
+        // POPULATE COMMITTEE SELECTOR
+        // ============================================================
+        function populateCommitteeSelect() {
+            const select = document.getElementById('committeeSelect');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">-- Select Committee --</option>';
 
-      myHistoryData = [...myBids, ...myPayments];
+            Object.keys(committees).forEach(key => {
+                const c = committees[key];
+                const info = c.info || {};
+                const name = info.name || key;
+                select.innerHTML += `<option value="${key}">${name}</option>`;
+            });
 
-      // Render Boli table
-      if (myBids.length === 0) {
-        bidTable.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi boli nahi</td></tr>`;
-      } else {
-        bidTable.innerHTML = myBids.map(p => {
-          return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td><span class="turn-badge current">${p.status}</span></td></tr>`;
-        }).join('');
-      }
+            if (currentValue && committees[currentValue]) {
+                select.value = currentValue;
+            } else if (currentCommitteeId && committees[currentCommitteeId]) {
+                select.value = currentCommitteeId;
+            }
+            updateKistBadge();
+        }
 
-      // Render Payment table
-      if (myPayments.length === 0) {
-        paymentTable.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#9B9B9B;padding:20px;">📭 Koi record nahi</td></tr>`;
-      } else {
-        paymentTable.innerHTML = myPayments.map(p => {
-          const s = p.status || 'Pending';
-          const cls = s === 'Approved' ? 'received' : 'pending';
-          return `<tr><td>${p.cycleName || '-'}</td><td>${p.month || '-'}</td><td>${fmtINR(p.amount)}</td><td><span class="turn-badge ${cls}">${s}</span></td></tr>`;
-        }).join('');
-      }
-    }
+        function updateKistBadge() {
+            const badge = document.getElementById('kistBadge');
+            const infoBox = document.getElementById('committeeInfoBox');
+            const investBox = document.getElementById('investBox');
 
-    window.exportExcel = function() {
-      if (myHistoryData.length === 0) return showToast('❌ Koi history nahi hai!', 'error');
-      let csv = 'Cycle,Month,Amount,Type,UTR,Status\n';
-      myHistoryData.forEach(p => {
-        const typeLbl = p.recordType === 'bid' ? 'Boli' : 'Payment';
-        csv += `"${p.cycleName || ''}","${p.month || ''}",${p.amount || 0},"${typeLbl}","${p.utr || 'N/A'}","${p.status || 'Pending'}"\n`;
-      });
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `BC_History_${(currentUserData.name || 'user').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showToast('✅ Excel download ho raha hai!');
-    };
+            if (currentCommitteeId && committees[currentCommitteeId]) {
+                const info = committees[currentCommitteeId].info || {};
+                const kist = info.defaultKist || 0;
+                currentLimit = info.memberLimit || 5;
+                badge.textContent = `💰 Kist: ${formatIndianCurrency(kist)}`;
 
-    // ============ INIT ============
-    // If not logged in, show auth
-    setTimeout(() => {
-      if (!auth.currentUser) {
-        document.getElementById('authSection').style.display = 'block';
-      }
-    }, 500);
-  </script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"3279d41ec7804124a29acc6e692f9a2b"}' crossorigin="anonymous"></script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"3279d41ec7804124a29acc6e692f9a2b"}' crossorigin="anonymous"></script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"3279d41ec7804124a29acc6e692f9a2b"}' crossorigin="anonymous"></script>
+                document.getElementById('infoCommitteeName').textContent = info.name || currentCommitteeId;
+                document.getElementById('infoAdminName').textContent = info.admin || 'N/A';
+                document.getElementById('infoKistAmount').textContent = formatIndianCurrency(kist);
+
+                const members = committees[currentCommitteeId].members || {};
+                const memberCount = Object.keys(members).length;
+                document.getElementById('infoMemberCount').textContent = memberCount + '/' + currentLimit;
+
+                isCommitteeFull = memberCount >= currentLimit;
+                document.getElementById('infoCommitteeStatus').textContent = isCommitteeFull ? '🔒 Full' : '🟢 Active';
+                document.getElementById('infoCommitteeStatus').style.color = isCommitteeFull ? '#92400e' : '#15803d';
+
+                infoBox.classList.remove('hidden');
+
+                document.getElementById('memberBadgeNav').textContent = memberCount;
+                const upcomingCount = Object.values(members).filter(m => !m.hasWon).length;
+                document.getElementById('upcomingBadgeNav').textContent = upcomingCount;
+                const history = committees[currentCommitteeId].history || {};
+                document.getElementById('historyBadgeNav').textContent = Object.keys(history).length;
+
+                const totalInvest = Object.values(members).reduce((sum, m) => sum + (m.kist || 0), 0);
+                document.getElementById('investTotalAmount').textContent = formatIndianCurrency(totalInvest);
+                document.getElementById('investMemberCount').textContent = memberCount + '/' + currentLimit + ' Members';
+                investBox.classList.remove('hidden');
+
+                const badges = document.querySelectorAll('.committee-full-badge');
+                badges.forEach(b => {
+                    if (isCommitteeFull) {
+                        b.classList.remove('hidden');
+                    } else {
+                        b.classList.add('hidden');
+                    }
+                });
+
+                const submitBtns = document.querySelectorAll('#submitBtn, #submitBtn2');
+                submitBtns.forEach(btn => {
+                    btn.disabled = isCommitteeFull;
+                    btn.textContent = isCommitteeFull ? '🔒 Committee Full' : '✔ Submit Proof';
+                    btn.style.opacity = isCommitteeFull ? '0.5' : '1';
+                    btn.style.cursor = isCommitteeFull ? 'not-allowed' : 'pointer';
+                });
+
+                if (isCommitteeFull) {
+                    const statusDisplays = document.querySelectorAll('#paymentStatusDisplay, #paymentStatusDisplay2');
+                    statusDisplays.forEach(el => {
+                        el.innerHTML = `
+                            <div class="payment-status-box full">
+                                <div class="icon">🔒</div>
+                                <div class="status-text">Committee Full</div>
+                                <div class="sub-text">Is committee mein ${currentLimit} members ho gaye hain. Naya payment submit nahi kar sakte.</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    updatePaymentStatus();
+                    updatePaymentStatus2();
+                }
+
+                loadBankDetails(currentCommitteeId);
+                renderPaymentHistory();
+
+            } else {
+                badge.textContent = '💰 Kist: ₹0';
+                infoBox.classList.add('hidden');
+                investBox.classList.add('hidden');
+                document.getElementById('memberBadgeNav').textContent = '0';
+                document.getElementById('upcomingBadgeNav').textContent = '0';
+                document.getElementById('historyBadgeNav').textContent = '0';
+                document.querySelectorAll('.committee-full-badge').forEach(b => b.classList.add('hidden'));
+                document.querySelectorAll('#submitBtn, #submitBtn2').forEach(btn => {
+                    btn.disabled = false;
+                    btn.textContent = '✔ Submit Proof';
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                });
+            }
+        }
+
+        function switchCommittee() {
+            const select = document.getElementById('committeeSelect');
+            const newId = select.value;
+            if (newId && committees[newId]) {
+                currentCommitteeId = newId;
+                const info = committees[newId].info || {};
+                committeeDefaultKist = info.defaultKist || 0;
+                currentLimit = info.memberLimit || 5;
+                listenCommitteeData(currentCommitteeId);
+                updateKistBadge();
+                setTimeout(() => { if (currentUser) render(); }, 300);
+                showToast(`📂 ${info.name || newId}`, 'success');
+            } else {
+                currentCommitteeId = null;
+                committeeDefaultKist = 0;
+                updateKistBadge();
+                if (currentUser) render();
+            }
+        }
+
+        // ============================================================
+        // LOAD BANK DETAILS
+        // ============================================================
+        function loadBankDetails(committeeId) {
+            database.ref(`committees/${committeeId}/bankDetails`).on('value', (snapshot) => {
+                committeeBankDetails = snapshot.val();
+                if (committeeBankDetails) {
+                    const val = (id, v) => document.getElementById(id).textContent = v;
+                    const amt = '₹' + (committeeBankDetails.amount || '0') + '/month';
+                    const upi = committeeBankDetails.upi || 'N/A';
+                    const acc = committeeBankDetails.accountName || 'N/A';
+                    const accNo = committeeBankDetails.accountNumber || 'N/A';
+                    const ifsc = committeeBankDetails.ifsc || 'N/A';
+
+                    ['displayAmount', 'displayAmount2'].forEach(id => val(id, amt));
+                    ['displayUPI', 'displayUPI2'].forEach(id => val(id, upi));
+                    ['displayAccount', 'displayAccount2'].forEach(id => val(id, acc));
+                    ['displayAccNo', 'displayAccNo2'].forEach(id => val(id, accNo));
+                    ['displayIFSC', 'displayIFSC2'].forEach(id => val(id, ifsc));
+
+                    if (committeeBankDetails.amount) {
+                        document.getElementById('paymentAmount').value = committeeBankDetails.amount;
+                        document.getElementById('paymentAmount2').value = committeeBankDetails.amount;
+                    }
+                } else {
+                    const d = ['₹0/month', 'N/A', 'N/A', 'N/A', 'N/A'];
+                    ['displayAmount', 'displayAmount2'].forEach(id => document.getElementById(id).textContent = d[0]);
+                    ['displayUPI', 'displayUPI2'].forEach(id => document.getElementById(id).textContent = d[1]);
+                    ['displayAccount', 'displayAccount2'].forEach(id => document.getElementById(id).textContent = d[2]);
+                    ['displayAccNo', 'displayAccNo2'].forEach(id => document.getElementById(id).textContent = d[3]);
+                    ['displayIFSC', 'displayIFSC2'].forEach(id => document.getElementById(id).textContent = d[4]);
+                }
+            });
+        }
+
+        // ============================================================
+        // FIREBASE LISTENERS
+        // ============================================================
+        function listenCommittees() {
+            database.ref('committees').on('value', (snapshot) => {
+                committees = snapshot.val() || {};
+                populateCommitteeSelect();
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                const keys = Object.keys(committees);
+                if (keys.length > 0 && !currentCommitteeId) {
+                    currentCommitteeId = keys[0];
+                    document.getElementById('committeeSelect').value = currentCommitteeId;
+                    const info = committees[currentCommitteeId].info || {};
+                    committeeDefaultKist = info.defaultKist || 0;
+                    currentLimit = info.memberLimit || 5;
+                    listenCommitteeData(currentCommitteeId);
+                    updateKistBadge();
+                }
+                if (currentUser) render();
+            }, (error) => {
+                console.error('Error loading committees:', error);
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                showToast('❌ Data load nahi ho paaya!', 'error');
+            });
+        }
+
+        function listenCommitteeData(committeeId) {
+            if (!committeeId) return;
+
+            database.ref(`committees/${committeeId}/members`).on('value', (snapshot) => {
+                const data = snapshot.val();
+                currentMembers = data ? Object.values(data) : [];
+                currentMembers.sort((a, b) => (a.id || 0) - (b.id || 0));
+
+                const memberCount = currentMembers.length;
+                isCommitteeFull = memberCount >= currentLimit;
+                updateKistBadge();
+
+                if (currentUser) render();
+                updateKistBadge();
+            });
+
+            database.ref(`committees/${committeeId}/history`).on('value', (snapshot) => {
+                const data = snapshot.val();
+                currentHistory = data ? Object.values(data) : [];
+                currentHistory.sort((a, b) => (a.id || 0) - (b.id || 0));
+                if (currentUser) render();
+                updateKistBadge();
+            });
+
+            if (currentUser) {
+                listenUserPayments(currentUser.phone, committeeId);
+            }
+        }
+
+        // ============================================================
+        // LISTEN USER PAYMENTS
+        // ============================================================
+        function listenUserPayments(phone, committeeId) {
+            database.ref('payments').orderByChild('userPhone').equalTo(phone).on('value', (snapshot) => {
+                const data = snapshot.val();
+                const allPayments = data ? Object.values(data) : [];
+                userPayments = allPayments.filter(p => p.committeeId === committeeId);
+
+                // Sort: Newest first
+                userPayments.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                currentPayment = userPayments.length > 0 ? userPayments[0] : null;
+
+                renderPaymentHistory();
+
+                if (!isCommitteeFull) {
+                    updatePaymentStatus();
+                    updatePaymentStatus2();
+                }
+            });
+        }
+
+        // ============================================================
+        // RENDER PAYMENT HISTORY
+        // ============================================================
+        function renderPaymentHistory() {
+            const containers = document.querySelectorAll('#paymentHistoryList, #paymentHistoryList2');
+            const count = document.getElementById('historyCount');
+
+            if (userPayments.length === 0) {
+                containers.forEach(el => {
+                    el.innerHTML = '<p class="text-muted" style="text-align:center;padding:10px;">No payment history.</p>';
+                });
+                if (count) count.textContent = '0';
+                return;
+            }
+
+            if (count) count.textContent = userPayments.length;
+
+            const statusMap = {
+                pending: { label: '⏳ Pending', cls: 'pending' },
+                success: { label: '✅ Success', cls: 'success' },
+                rejected: { label: '❌ Rejected', cls: 'rejected' }
+            };
+
+            const html = userPayments.map(p => {
+                const st = statusMap[p.status] || statusMap.pending;
+                return `
+                    <div class="payment-history-item">
+                        <div class="ph-left">
+                            <span class="ph-amount">💰 ${formatIndianCurrency(p.amount)}</span>
+                            <span class="ph-utr">📋 UTR: ${p.utr || 'N/A'}</span>
+                            <span class="ph-date">📅 ${p.timestamp ? new Date(p.timestamp).toLocaleString() : 'N/A'}</span>
+                            ${p.rejectReason ? `<span class="ph-date" style="color:var(--danger);">❌ Reason: ${p.rejectReason}</span>` : ''}
+                        </div>
+                        <div class="ph-right">
+                            <span class="badge-status ${st.cls}">${st.label}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            containers.forEach(el => {
+                el.innerHTML = html;
+            });
+        }
+
+        // ============================================================
+        // USER LOGIN / LOGOUT
+        // ============================================================
+        function userLogin() {
+            const name = document.getElementById('loginName').value.trim();
+            const phone = document.getElementById('loginPhone').value.trim();
+
+            if (!name || !phone) {
+                showToast('❌ Kripya Naam aur Phone daalein!', 'error');
+                return;
+            }
+
+            let found = false;
+            for (const key in committees) {
+                const members = committees[key].members || {};
+                for (const mid in members) {
+                    const m = members[mid];
+                    if (m.name.toLowerCase() === name.toLowerCase() && m.phone === phone) {
+                        found = true;
+                        currentCommitteeId = key;
+                        document.getElementById('committeeSelect').value = key;
+                        const info = committees[key].info || {};
+                        committeeDefaultKist = info.defaultKist || 0;
+                        currentLimit = info.memberLimit || 5;
+                        listenCommitteeData(key);
+                        updateKistBadge();
+                        break;
+                    }
+                }
+                if (found) break;
+            }
+
+            if (!found) {
+                showToast('⚠️ Aap kisi committee ke member nahi hain!', 'error');
+                return;
+            }
+
+            currentUser = { name, phone };
+            document.getElementById('headerUserName').textContent = name;
+            document.getElementById('headerAvatar').textContent = name.charAt(0).toUpperCase();
+            document.getElementById('drawerName').textContent = name;
+            document.getElementById('drawerPhone').textContent = '📱 ' + phone;
+            document.getElementById('drawerAvatar').textContent = name.charAt(0).toUpperCase();
+
+            document.getElementById('loginCard').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+
+            setTimeout(() => {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+                render();
+                navigateTo('home');
+            }, 500);
+
+            showToast(`✅ Welcome ${name}!`, 'success');
+        }
+
+        function userLogout() {
+            if (confirm('Kya aap logout karna chahte hain?')) {
+                currentUser = null;
+                document.getElementById('mainApp').classList.add('hidden');
+                document.getElementById('loginCard').classList.remove('hidden');
+                document.getElementById('headerUserName').textContent = 'Guest';
+                document.getElementById('headerAvatar').textContent = 'G';
+                document.getElementById('drawerName').textContent = 'Guest';
+                document.getElementById('drawerPhone').textContent = 'Not Logged In';
+                document.getElementById('drawerAvatar').textContent = 'G';
+                closeDrawer();
+                showToast('👋 Logout!', 'success');
+            }
+        }
+
+        // ============================================================
+        // SUBMIT PAYMENT
+        // ============================================================
+        function submitPayment() {
+            if (isCommitteeFull) {
+                showToast('🔒 Committee full hai! Payment submit nahi kar sakte.', 'warning');
+                return;
+            }
+            doSubmitPayment('paymentAmount', 'paymentUtr');
+        }
+
+        function submitPayment2() {
+            if (isCommitteeFull) {
+                showToast('🔒 Committee full hai! Payment submit nahi kar sakte.', 'warning');
+                return;
+            }
+            doSubmitPayment('paymentAmount2', 'paymentUtr2');
+        }
+
+        function doSubmitPayment(amountId, utrId) {
+            if (!currentUser) { showToast('❌ Pehle login karein!', 'error'); return; }
+            if (!currentCommitteeId) { showToast('❌ Pehle committee select karein!', 'error'); return; }
+            if (isCommitteeFull) { showToast('🔒 Committee full hai!', 'warning'); return; }
+
+            const amount = document.getElementById(amountId).value.trim();
+            const utr = document.getElementById(utrId).value.trim();
+
+            if (!amount || parseFloat(amount) <= 0) { showToast('❌ Kripya sahi amount daalein!', 'error'); return; }
+            if (!utr || utr.length < 4) { showToast('❌ Kripya UTR number daalein!', 'error'); return; }
+
+            const pendingPayment = userPayments.find(p => p.status === 'pending');
+            if (pendingPayment) {
+                showToast('⚠️ Aapka payment already pending hai! Admin verify karenge.', 'warning');
+                return;
+            }
+
+            const committeeInfo = committees[currentCommitteeId]?.info || {};
+            const bankInfo = committeeBankDetails || {};
+
+            const paymentData = {
+                id: Date.now().toString(),
+                memberName: currentUser.name,
+                userPhone: currentUser.phone,
+                amount: parseFloat(amount),
+                utr: utr,
+                status: 'pending',
+                committeeId: currentCommitteeId,
+                committeeName: committeeInfo.name || 'Committee',
+                cycle: bankInfo.cycle || 'Committee',
+                timestamp: new Date().toISOString()
+            };
+
+            database.ref('payments/' + paymentData.id).set(paymentData)
+                .then(() => {
+                    showToast('✅ Payment proof submitted! Admin verify karenge.', 'success');
+                    document.getElementById(utrId).value = '';
+                    listenUserPayments(currentUser.phone, currentCommitteeId);
+                })
+                .catch((error) => { showToast('❌ Error: ' + error.message, 'error'); });
+        }
+
+        // ============================================================
+        // UPDATE PAYMENT STATUS
+        // ============================================================
+        function updatePaymentStatus() {
+            if (isCommitteeFull) {
+                const container = document.getElementById('paymentStatusDisplay');
+                container.innerHTML = `
+                    <div class="payment-status-box full">
+                        <div class="icon">🔒</div>
+                        <div class="status-text">Committee Full</div>
+                        <div class="sub-text">Is committee mein ${currentLimit} members ho gaye hain. Naya payment submit nahi kar sakte.</div>
+                    </div>
+                `;
+                return;
+            }
+            updatePaymentStatusDisplay('paymentStatusDisplay');
+        }
+
+        function updatePaymentStatus2() {
+            if (isCommitteeFull) {
+                const container = document.getElementById('paymentStatusDisplay2');
+                container.innerHTML = `
+                    <div class="payment-status-box full">
+                        <div class="icon">🔒</div>
+                        <div class="status-text">Committee Full</div>
+                        <div class="sub-text">Is committee mein ${currentLimit} members ho gaye hain. Naya payment submit nahi kar sakte.</div>
+                    </div>
+                `;
+                return;
+            }
+            updatePaymentStatusDisplay('paymentStatusDisplay2');
+        }
+
+        function updatePaymentStatusDisplay(containerId) {
+            const container = document.getElementById(containerId);
+            if (!currentPayment) {
+                container.innerHTML = `
+                    <div class="payment-status-box none">
+                        <div class="icon">⏳</div>
+                        <div class="status-text">No Payment Submitted</div>
+                        <div class="sub-text">Pay your monthly kist to see status here.</div>
+                    </div>
+                `;
+                return;
+            }
+            const statusMap = {
+                pending: { icon: '⏳', text: 'Pending Verification', sub: 'Admin aapke payment ki verify kar rahe hain.',
+                    cls: 'pending' },
+                success: { icon: '✅', text: 'Payment Approved!', sub: 'Aapka payment successfully verify ho gaya.',
+                    cls: 'success' },
+                rejected: { icon: '❌', text: 'Payment Rejected', sub: 'Kripya admin se contact karein.',
+                    cls: 'rejected' }
+            };
+            const st = statusMap[currentPayment.status] || statusMap.pending;
+            container.innerHTML = `
+                <div class="payment-status-box ${st.cls}">
+                    <div class="icon">${st.icon}</div>
+                    <div class="status-text">${st.text}</div>
+                    <div class="sub-text">${st.sub}</div>
+                    ${currentPayment.utr ? `<div class="sub-text" style="margin-top:5px;">📋 UTR: ${currentPayment.utr}</div>` : ''}
+                    ${currentPayment.amount ? `<div class="sub-text">💰 Amount: ₹${currentPayment.amount}</div>` : ''}
+                    ${currentPayment.rejectReason ? `<div class="sub-text" style="color:var(--danger);">❌ Reason: ${currentPayment.rejectReason}</div>` : ''}
+                    ${currentPayment.timestamp ? `<div class="sub-text">📅 ${new Date(currentPayment.timestamp).toLocaleString()}</div>` : ''}
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // RENDER
+        // ============================================================
+        function render() {
+            const total = currentMembers.length;
+            const membersList = document.getElementById('membersList');
+
+            if (total === 0) {
+                membersList.innerHTML = '<p class="text-muted">Koi member nahi hai.</p>';
+            } else {
+                membersList.innerHTML = currentMembers.map(m => {
+                    const kist = validateKist(m.kist);
+                    return `
+                        <div class="member-item">
+                            <div class="member-info">
+                                <strong>${m.name} ${m.hasWon ? '🏆' : ''}</strong>
+                                <span class="phone-text">📞 ${m.phone}</span>
+                                <span class="kist-text">Kist: ${formatIndianCurrency(kist)}</span>
+                            </div>
+                            <div class="member-right">
+                                <span class="badge-status ${m.paidThisMonth ? 'paid' : 'pending'}">
+                                    ${m.paidThisMonth ? '✅ PAID' : '⏳ PENDING'}
+                                </span>
+                                ${m.hasWon ? `<span class="badge-status won">🏆 WON</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // History
+            const historyList = document.getElementById('historyList');
+            if (currentHistory.length === 0) {
+                historyList.innerHTML = '<p class="text-muted">Abhi tak kisi ko pool nahi mila.</p>';
+            } else {
+                historyList.innerHTML = currentHistory.map(h => `
+                    <div class="member-item">
+                        <div class="member-info">
+                            <strong>🏆 ${h.winnerName}</strong>
+                            <span class="phone-text">📅 ${h.date || 'N/A'}</span>
+                        </div>
+                        <div class="member-right" style="font-weight:700;color:var(--secondary);">
+                            + ${formatIndianCurrency(h.amount)}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Upcoming
+            const upcomingList = document.getElementById('upcomingList');
+            const upcoming = currentMembers.filter(m => !m.hasWon);
+            if (upcoming.length === 0) {
+                upcomingList.innerHTML = '<p class="text-muted">🎉 Sabhi ko pool mil chuka hai!</p>';
+            } else {
+                upcomingList.innerHTML = upcoming.map(m => `
+                    <div class="member-item">
+                        <div class="member-info">
+                            <strong>⏳ ${m.name}</strong>
+                            <span class="phone-text">📞 ${m.phone}</span>
+                        </div>
+                        <div class="member-right">
+                            <span class="badge-status pending">Aane Wala</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateKistBadge();
+            if (!isCommitteeFull) {
+                updatePaymentStatus();
+                updatePaymentStatus2();
+            }
+            renderPaymentHistory();
+        }
+
+        // ============================================================
+        // SEED DATA
+        // ============================================================
+        function seedData() {
+            database.ref('committees').once('value', (snapshot) => {
+                if (!snapshot.exists()) {
+                    const defaultKist = 2000;
+                    const id = 'committee_' + Date.now();
+
+                    const members = {
+                        1: { id: 1, name: 'Asayadev Gamango', phone: '7847853652', kist: defaultKist,
+                            paidThisMonth: true, hasWon: false },
+                        2: { id: 2, name: 'ERICKDEV', phone: '7656913601', kist: defaultKist,
+                            paidThisMonth: false, hasWon: false }
+                    };
+
+                    const data = {
+                        info: {
+                            name: 'Youth Committee',
+                            admin: 'Dev',
+                            defaultKist: defaultKist,
+                            memberLimit: 5,
+                            created: new Date().toISOString(),
+                            status: 'active'
+                        },
+                        members: members,
+                        history: {},
+                        bankDetails: {
+                            upi: '7847853652',
+                            accountName: 'Asayadev',
+                            accountNumber: '1122221111',
+                            ifsc: 'CNRB000839',
+                            cycle: 'Youth',
+                            amount: '2500',
+                            updatedAt: new Date().toISOString()
+                        }
+                    };
+
+                    database.ref(`committees/${id}`).set(data)
+                        .then(() => console.log('✅ Seed committee added!'))
+                        .catch((error) => console.error('Error seeding:', error));
+                }
+            });
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        function init() {
+            seedData();
+            listenCommittees();
+            console.log('✅ Gram Invest - User Panel Loaded!');
+            console.log('🔧 Features:');
+            console.log('  ✅ App Name: Gram Invest');
+            console.log('  ✅ Payment History - Newest first');
+            console.log('  ✅ Submit Button Disable on Committee Full');
+            console.log('  ✅ Group User Invest Display');
+        }
+
+        init();
+    </script>
 </body>
 </html>
